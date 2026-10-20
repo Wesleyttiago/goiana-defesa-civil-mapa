@@ -1,4 +1,4 @@
-/** Contrato usado pelo RF03. Os dados pertencem à API da equipe, não a este módulo. */
+/** Contrato usado pelo RF03 e RF04. Os dados pertencem à API da equipe. */
 export interface PontoRisco {
   id: string;
   latitude: number;

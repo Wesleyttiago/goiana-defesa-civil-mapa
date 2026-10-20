@@ -1,6 +1,6 @@
 {
-  "name": "goiana-rf03-mapa",
-  "version": "0.2.0",
+  "name": "goiana-defesa-civil-mapa",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -15,7 +15,8 @@
     "next": "16.4.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "leaflet.markercluster": "1.5.3"
+    "leaflet.markercluster": "1.5.3",
+    "leaflet.heat": "0.2.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
@@ -24,7 +25,8 @@
     "@types/react-dom": "^19.2.3",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",
-    "@types/leaflet.markercluster": "1.5.6"
+    "@types/leaflet.markercluster": "1.5.6",
+    "@types/leaflet.heat": "0.2.5"
   },
   "engines": {
     "node": ">=20.9.0"

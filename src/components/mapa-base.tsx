@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
 import { CENTRO_GOIANA, ESTILOS_RISCO, maiorNivel, type NivelRisco, type PontoRisco } from '@/lib/pontos';
+import { useCamadaCalor, type EstadoCalor } from './use-camada-calor';
 
 export interface EstadoPlotagem {
   fase: 'carregando' | 'pronto' | 'erro';
@@ -16,9 +17,11 @@ interface Props {
   centralizarId: number;
   enquadrarId: number;
   aoAtualizar: (estado: EstadoPlotagem) => void;
+  calorAtivo: boolean;
+  aoAtualizarCalor: (estado: EstadoCalor) => void;
 }
 
-function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar }: Props) {
+function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo, aoAtualizarCalor }: Props) {
   const elementoRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<Leaflet.Map | null>(null);
   const bibliotecaRef = useRef<typeof Leaflet | null>(null);
@@ -27,6 +30,8 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar }: Props) {
   const [erroInicial, setErroInicial] = useState(false);
   const [erroRuas, setErroRuas] = useState(false);
   const [tentativa, setTentativa] = useState(0);
+  const calor = useCamadaCalor({ mapa: pronto ? mapaRef.current : null, pontos, ativo: calorAtivo });
+  useEffect(() => { aoAtualizarCalor(calor.estado); }, [calor.estado, aoAtualizarCalor]);
 
   // A instância do mapa é criada uma vez; os pontos são atualizados em outra camada.
   useEffect(() => {
@@ -135,11 +140,12 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enquadrarId, pronto]);
 
-  return <div className="mapa-base">
+  return <div className="mapa-base" data-camada-calor={calor.estado.fase} data-pontos-calor={calor.estado.quantidade}>
     <div className="superficie-mapa" ref={elementoRef} role="region" aria-label="Mapa interativo de Goiana com marcadores de risco" />
     {!pronto && !erroInicial && <div className="carregando-mapa" role="status"><span className="spinner"/>Carregando o mapa de Goiana…</div>}
     {(erroInicial || erroRuas) && <div className="erro-mapa" role="alert"><span>{erroInicial ? 'Não foi possível iniciar o mapa.' : 'Não foi possível carregar as ruas. Verifique a conexão com a internet.'}</span>
       <button type="button" onClick={() => { if (erroInicial) setTentativa(n => n + 1); else { setErroRuas(false); mosaicoRef.current?.redraw(); } }}>Tentar novamente</button></div>}
+    {calor.estado.fase === 'erro' && <div className="erro-mapa" role="alert"><span>Não foi possível carregar o mapa de calor.</span><button type="button" onClick={calor.tentarNovamente}>Tentar carregar o calor</button></div>}
   </div>;
 }
 

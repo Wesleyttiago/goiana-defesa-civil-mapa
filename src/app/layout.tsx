@@ -10,7 +10,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "DRP | Defesa Civil de Goiana — Mapa de riscos",
   description:
-    "RF03 — Mapa base interativo de Goiana com marcadores por nível de risco.",
+    "RF03 e RF04 — Mapa interativo de Goiana com marcadores por risco e camada de mapa de calor.",
   robots: { index: false, follow: false },
 };
 
