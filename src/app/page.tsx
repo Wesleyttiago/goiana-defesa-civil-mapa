@@ -1,5 +1,5 @@
-import Portal from "@/components/portal";
+import VisaoMapa from "@/components/visao-mapa";
 
 export default function Home() {
-  return <Portal />;
+  return <VisaoMapa />;
 }

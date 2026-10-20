@@ -1,0 +1,10 @@
+[
+  { "id": "exemplo-01", "latitude": -7.5601, "longitude": -35.0041, "nivelRisco": "alto" },
+  { "id": "exemplo-02", "latitude": -7.5622, "longitude": -35.0028, "nivelRisco": "medio" },
+  { "id": "exemplo-03", "latitude": -7.5588, "longitude": -35.0007, "nivelRisco": "baixo" },
+  { "id": "exemplo-04", "latitude": -7.5642, "longitude": -35.0054, "nivelRisco": "alto" },
+  { "id": "exemplo-05", "latitude": -7.5568, "longitude": -35.0083, "nivelRisco": "medio" },
+  { "id": "exemplo-06", "latitude": -7.5576, "longitude": -34.9983, "nivelRisco": "baixo" },
+  { "id": "exemplo-07", "latitude": -7.566, "longitude": -35.0016, "nivelRisco": "alto" },
+  { "id": "exemplo-08", "latitude": -7.561, "longitude": -34.996, "nivelRisco": "medio" }
+]

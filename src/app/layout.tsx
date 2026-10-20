@@ -4,12 +4,13 @@ import "@fontsource/montserrat/500.css";
 import "@fontsource/montserrat/600.css";
 import "@fontsource/montserrat/700.css";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Defesa Civil | Goiana — Mapa de famílias",
+  title: "DRP | Defesa Civil de Goiana — Mapa de riscos",
   description:
-    "Módulo de cadastro e mapeamento de famílias acompanhadas pela Defesa Civil de Goiana, Pernambuco.",
+    "RF03 — Mapa base interativo de Goiana com marcadores por nível de risco.",
   robots: { index: false, follow: false },
 };
 
