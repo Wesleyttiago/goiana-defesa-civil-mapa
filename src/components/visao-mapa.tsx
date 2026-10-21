@@ -6,7 +6,8 @@ import MapaRiscos from './mapa-riscos';
 import { carregarPontos, type PontoRisco } from '@/lib/pontos';
 
 const apiUrl = process.env.NEXT_PUBLIC_RF03_API_URL;
-const fonte = apiUrl || '/dados-exemplo.json';
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+const fonte = apiUrl || `${basePath}/dados-exemplo.json`;
 
 export default function VisaoMapa() {
   const [pontos, setPontos] = useState<PontoRisco[]>([]);
@@ -31,7 +32,7 @@ export default function VisaoMapa() {
   return <div className="pagina-mapa">
     <a href="#conteudo" className="pular-conteudo">Ir para o conteúdo</a>
     <aside className="barra-lateral" aria-label="Defesa Civil de Goiana">
-      <div className="marca-prefeitura"><img src="/logo-goiana.png" width="142" height="76" alt="Prefeitura de Goiana — Crescendo juntos, cuidando da gente"/></div>
+      <div className="marca-prefeitura"><img src={`${basePath}/logo-goiana.png`} width="142" height="76" alt="Prefeitura de Goiana — Crescendo juntos, cuidando da gente"/></div>
       <div className="identidade-sistema"><span className="icone-defesa"><ShieldCheck size={25} strokeWidth={1.6}/></span><div><span>Prefeitura de Goiana</span><strong>Defesa Civil</strong></div></div>
       <p className="descricao-sistema">Sistema de Redução de<br/>Riscos de Desastres</p>
       <nav className="navegacao" aria-label="Monitoramento social"><span className="titulo-navegacao">MONITORAMENTO SOCIAL</span><a href="#conteudo" aria-current="page"><Map size={20}/><span>Mapa social</span><ChevronRight size={15}/></a></nav>
