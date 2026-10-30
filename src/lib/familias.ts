@@ -1,4 +1,6 @@
 import { coordenadasValidas, normalizarPontos, type NivelRisco, type PontoRisco } from './pontos';
+import { calcularIdade, lerFamiliares, type Familiar, type PessoaDemonstrativa } from './integrantes';
+import { dentroDeGoiana } from './territorio';
 
 export const TIPOS_OCORRENCIA = {
   nao_informado: 'Não informado', inundacao: 'Inundação de rio', alagamento: 'Alagamento',
@@ -13,6 +15,7 @@ export interface DadosFamilia {
   logradouro: string; numero: string; bairro: string; complemento: string;
   moradores: number; nivelRisco: NivelRisco; tipoOcorrencia: TipoOcorrencia;
   observacoes: string; localizacao: LocalizacaoFamilia;
+  nascimentoRepresentante?: string; apoioRepresentante?: string; familiares?: Familiar[];
 }
 export interface CadastroFamilia extends PontoRisco {
   dados?: DadosFamilia; criadoEm?: string;
@@ -20,6 +23,7 @@ export interface CadastroFamilia extends PontoRisco {
 }
 export interface ResumoDemonstrativo {
   moradores: number;
+  integrantes: PessoaDemonstrativa[];
   referenciaLocal: string;
   nucleo: string;
   areaSgb: { id: string; classe: 'Alta' | 'Média'; camada: 'inundacao' | 'movimento' };
@@ -32,6 +36,7 @@ export const FORMULARIO_VAZIO: CamposCadastro = {
   nomeRepresentante: '', cpf: '', telefone: '', logradouro: '', numero: '', bairro: '',
   complemento: '', moradores: '1', nivelRisco: 'nao_informado', tipoOcorrencia: 'nao_informado',
   observacoes: '', localizacao: null,
+  nascimentoRepresentante: '', apoioRepresentante: '', familiares: [],
 };
 export function gerarIdentificador(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
@@ -68,11 +73,21 @@ export function validarCadastro(campos: CamposCadastro): ErrosCadastro {
   if (!limpar(campos.bairro) || campos.bairro.length > 100) erros.bairro = 'Informe o bairro ou a comunidade (até 100 caracteres).';
   if (campos.complemento.length > 160) erros.complemento = 'Use até 160 caracteres.';
   if (!/^\d+$/.test(campos.moradores) || Number(campos.moradores) < 1 || Number(campos.moradores) > 99) erros.moradores = 'Informe entre 1 e 99 moradores.';
+  if (campos.nascimentoRepresentante && calcularIdade(campos.nascimentoRepresentante) === null) erros.nascimentoRepresentante = 'Informe uma data de nascimento válida, sem data futura.';
+  if ((campos.apoioRepresentante?.length || 0) > 300) erros.apoioRepresentante = 'Use até 300 caracteres.';
+  const familiares = lerFamiliares(campos.familiares ?? []);
+  if (!familiares || familiares.some(p => p.cpf.trim() && !cpfValido(p.cpf))) erros.familiares = 'Confira nome, nascimento, parentesco e CPF dos familiares. O CPF pode ficar em branco quando não informado.';
+  else {
+    const cpfs = [digitos(campos.cpf), ...familiares.map(p => digitos(p.cpf)).filter(Boolean)];
+    if (new Set(cpfs).size !== cpfs.length) erros.familiares = 'Um mesmo CPF não pode identificar duas pessoas da família.';
+    if (familiares.length + 1 > Number(campos.moradores)) erros.moradores = 'A quantidade de moradores deve incluir o representante e todos os familiares identificados.';
+  }
   if (!['baixo', 'medio', 'alto', 'nao_informado'].includes(campos.nivelRisco)) erros.nivelRisco = 'Selecione uma classificação válida.';
   if (!Object.hasOwn(TIPOS_OCORRENCIA, campos.tipoOcorrencia)) erros.tipoOcorrencia = 'Selecione um tipo de ocorrência válido.';
   if (campos.observacoes.length > 1000) erros.observacoes = 'Use até 1.000 caracteres.';
   const local = campos.localizacao;
   if (!local || !coordenadasValidas(local.latitude, local.longitude) || !['gps', 'mapa', 'coordenadas'].includes(local.origem)) erros.localizacao = 'Marque a residência no mapa, use o GPS ou confirme as coordenadas antes de cadastrar.';
+  else if (!dentroDeGoiana(local.latitude, local.longitude)) erros.localizacao = 'O ponto está fora do limite municipal de Goiana–PE (IBGE 2025). Confira o GPS ou ajuste a marcação da residência.';
   return erros;
 }
 export function prepararCadastro(campos: CamposCadastro): DadosFamilia {
@@ -83,6 +98,9 @@ export function prepararCadastro(campos: CamposCadastro): DadosFamilia {
     logradouro: limpar(campos.logradouro), numero: limpar(campos.numero), bairro: limpar(campos.bairro),
     complemento: limpar(campos.complemento), moradores: Number(campos.moradores),
     nivelRisco: campos.nivelRisco, tipoOcorrencia: campos.tipoOcorrencia, observacoes: campos.observacoes.trim(),
+    ...(campos.nascimentoRepresentante ? { nascimentoRepresentante: campos.nascimentoRepresentante } : {}),
+    ...(campos.apoioRepresentante?.trim() ? { apoioRepresentante: campos.apoioRepresentante.trim() } : {}),
+    ...(campos.familiares?.length ? { familiares: lerFamiliares(campos.familiares)!.map(p => ({ ...p, cpf: digitos(p.cpf) })) } : {}),
     localizacao: { latitude: local.latitude, longitude: local.longitude, origem: local.origem,
       ...(local.origem === 'gps' && Number.isFinite(local.precisaoMetros) && local.precisaoMetros! >= 0 ? { precisaoMetros: local.precisaoMetros } : {}) },
   };
@@ -96,6 +114,12 @@ export function exemploCadastro(): CamposCadastro {
   return { ...FORMULARIO_VAZIO, nomeRepresentante: 'Família Exemplo da Silva', cpf: '111.444.777-35',
     telefone: '', logradouro: 'Rua de demonstração', numero: '10', bairro: 'Centro', moradores: '4',
     nivelRisco: 'medio', tipoOcorrencia: 'inundacao', observacoes: 'Cadastro fictício para testar o fluxo.',
+    nascimentoRepresentante: '1988-04-12', apoioRepresentante: '',
+    familiares: [
+      { id: 'exemplo-conjuge', nomeCompleto: 'Carlos Exemplo da Silva', parentesco: 'conjuge', dataNascimento: '1986-06-08', cpf: '', apoio: '' },
+      { id: 'exemplo-filho', nomeCompleto: 'Alice Exemplo da Silva', parentesco: 'filho', dataNascimento: '2018-03-20', cpf: '', apoio: 'Acompanhamento de responsável' },
+      { id: 'exemplo-mae', nomeCompleto: 'Rosa Exemplo da Silva', parentesco: 'pai_mae', dataNascimento: '1955-11-02', cpf: '', apoio: 'Mobilidade reduzida; precisa de acompanhamento para evacuação' },
+    ],
     localizacao: { latitude: -7.5608, longitude: -35.0009, origem: 'mapa' } };
 }
 function erroHttp(status: number): string {
@@ -130,6 +154,13 @@ export async function carregarDetalhe(endereco: string, id: string, signal?: Abo
     campos[campo] = typeof dado[campo] === 'string' ? dado[campo] : '';
   }
   campos.moradores = String(dado.moradores ?? '');
+  if (typeof dado.nascimentoRepresentante === 'string') campos.nascimentoRepresentante = dado.nascimentoRepresentante;
+  if (typeof dado.apoioRepresentante === 'string') campos.apoioRepresentante = dado.apoioRepresentante;
+  if (dado.familiares !== undefined) {
+    const familiares = lerFamiliares(dado.familiares);
+    if (!familiares) throw new Error('Os dados dos familiares retornados pelo servidor estão incompletos.');
+    campos.familiares = familiares;
+  }
   campos.nivelRisco = ['baixo', 'medio', 'alto'].includes(String(dado.nivelRisco)) ? dado.nivelRisco as NivelRisco : 'nao_informado';
   campos.tipoOcorrencia = Object.hasOwn(TIPOS_OCORRENCIA, String(dado.tipoOcorrencia)) ? dado.tipoOcorrencia as TipoOcorrencia : 'nao_informado';
   const local = dado.localizacao as Record<string, unknown> | undefined;

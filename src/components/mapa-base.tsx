@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
 import { CENTRO_GOIANA, ESTILOS_RISCO, maiorNivel, nomeDaFamilia, type NivelRisco, type PontoRisco } from '@/lib/pontos';
+import { adicionarLimiteGoiana } from '@/lib/territorio';
 import { useCamadaCalor, type EstadoCalor } from './use-camada-calor';
 import CamadasAmbientaisMapa, { type ConfiguracaoAmbiente } from './camadas-ambientais-mapa';
 
@@ -70,6 +71,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       mosaico.on('tileerror', () => { falhas++; if (!cancelado && falhas >= 3) setErroRuas(true); });
       mosaico.on('tileload', () => { falhas = 0; if (!cancelado) setErroRuas(false); });
       mosaico.addTo(mapa); mosaicoRef.current = mosaico;
+      adicionarLimiteGoiana(L, mapa);
       L.control.zoom({ position: 'topright', zoomInTitle: 'Aproximar mapa', zoomOutTitle: 'Afastar mapa' }).addTo(mapa);
       L.control.scale({ position: 'bottomleft', imperial: false }).addTo(mapa);
       observador = new ResizeObserver(() => {
