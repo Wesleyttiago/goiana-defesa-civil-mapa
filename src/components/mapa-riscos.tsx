@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Expand, Layers, LocateFixed, MapPin, RefreshCw } from 'lucide-react';
+import { Expand, Layers, LocateFixed, MapPin, RefreshCw, Users } from 'lucide-react';
 import { contarNiveis, ESTILOS_RISCO, type NivelRisco, type PontoRisco } from '@/lib/pontos';
 import { ESCALA_CALOR } from '@/lib/calor';
 import type { EstadoPlotagem } from './mapa-base';
@@ -57,7 +57,10 @@ function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecar
         <div className="legenda-titulo">Famílias no mapa</div><p>Nível de risco informado no cadastro</p><ul aria-label="Legenda dos marcadores">{niveis.map(nivel => {
       const estilo = ESTILOS_RISCO[nivel];
       return <li key={nivel}><span className="amostra" style={{ backgroundColor: estilo.cor }} aria-hidden="true">{estilo.letra}</span><span>{estilo.rotulo}</span><span className="quantidade">{totais[nivel]}</span></li>;
-      })}</ul><span className="orientacao">Clique em uma família para ver o representante.<br/>{' '}Aproxime os grupos para ver cada cadastro.</span><small className="ajuda-mapa">Zoom: botões + e −, teclado ou gesto de pinça. A roda do mouse rola a página.</small></div>
+      })}</ul><div className="orientacao leitura-marcadores">
+        <div><span className="exemplo-grupo" aria-hidden="true"><Users size={13}/><b>3</b></span><span><strong>Grupo de famílias</strong>O número é a quantidade de cadastros. Clique para aproximar.</span></div>
+        <div><span className="exemplo-pino" aria-hidden="true"><MapPin size={23}/></span><span><strong>Uma família</strong>Clique no pino para ver o representante e abrir o cadastro.</span></div>
+      </div><small className="ajuda-mapa">Zoom: botões + e −, teclado ou gesto de pinça. A roda do mouse rola a página.</small></div>
     </div>
     {erro && <div className="aviso-dados erro-dados" role="alert"><span>{erro}{pontos.length > 0 && ' Os últimos dados carregados continuam visíveis.'}</span>{aoRecarregar && <button type="button" onClick={aoRecarregar}>Tentar novamente</button>}</div>}
     {descartados > 0 && <p className="aviso-dados" role="status">{descartados} {descartados === 1 ? 'registro inválido, duplicado ou fora do recorte não foi exibido' : 'registros inválidos, duplicados ou fora do recorte não foram exibidos'}.</p>}

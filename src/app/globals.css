@@ -124,10 +124,20 @@ h1 { margin: 0; font-size: clamp(20px, 2vw, 26px); font-weight: 700; letter-spac
 .popup-familia .leaflet-popup-close-button { top: 0; right: 0; width: 44px; height: 44px; font-size: 24px; line-height: 44px; color: var(--secundario); border-radius: 0 12px 0 8px; }
 .popup-familia .leaflet-popup-close-button:hover { color: var(--texto); background: #eef5fc; }
 @keyframes abrir-familia { from { opacity: 0; transform: translateY(7px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.agrupamento > span { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 3px solid #fff; border-radius: 50%; background: var(--cor-risco); color: #fff; box-shadow: 0 0 0 4px #ffffff80, 0 2px 9px #102e5050; font-size: 13px; font-weight: 700; }
+.agrupamento > span { position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 3px solid #fff; border-radius: 50%; background: var(--cor-risco); color: #fff; box-shadow: 0 0 0 4px #ffffff80, 0 2px 9px #102e5050; font-size: 13px; font-weight: 700; }
 .agrupamento > span { transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, border-color .18s ease; }
-/* No calor, o disco do grupo não cobre as áreas de concentração. O número segue clicável. */
-.mapa-base[data-camada-calor='ativo'] .agrupamento > span { background: transparent; border-color: transparent; box-shadow: none; color: #102e50; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 5px #fff; }
+.agrupamento b { font-size: inherit; font-variant-numeric: tabular-nums; }
+.agrupamento .icone-grupo { display: none; width: 14px; height: 14px; flex-shrink: 0; }
+/* No calor, o grupo ganha uma etiqueta neutra; o alvo de toque mantém 44 px. */
+.mapa-base[data-camada-calor='ativo'] .agrupamento > span { top: 5px; width: max-content; min-width: 44px; height: 34px; gap: 5px; padding: 0 8px; border: 1.5px solid #173453; border-radius: 11px; background: #fff; color: #173453; box-shadow: 0 2px 7px #102e5040; }
+.mapa-base[data-camada-calor='ativo'] .agrupamento .icone-grupo { display: block; }
+.mapa-base[data-camada-calor='ativo'] .agrupamento:hover > span { background: #eaf3ff; border-color: #126bd3; }
+.leitura-marcadores { display: grid; gap: 12px; }
+.leitura-marcadores > div { display: flex; align-items: flex-start; gap: 9px; }
+.leitura-marcadores strong { display: block; margin-bottom: 2px; color: var(--texto); font-size: 10px; }
+.exemplo-grupo, .exemplo-pino { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 41px; height: 28px; gap: 4px; color: #173453; }
+.exemplo-grupo { border: 1.5px solid #173453; border-radius: 9px; background: #fff; font-size: 11px; }
+.exemplo-pino { color: #0958b3; }
 .leaflet-container a { color: #0958b3; }
 .leaflet-container .leaflet-control-zoom { margin-top: 17px; margin-right: 17px; border: 1px solid #cbd8e5; box-shadow: 0 3px 12px #102e5015; }
 .leaflet-container .leaflet-control-zoom a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--texto); }
