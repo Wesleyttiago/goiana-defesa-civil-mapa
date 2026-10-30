@@ -3,7 +3,7 @@
 ## Ajustes entregues
 
 - O mapa aguarda o fim do agrupamento antes de localizar uma família. Limpar um filtro e localizar o cadastro agora abre o representante correto.
-- A roda do mouse rola a página; o zoom continua pelos botões, teclado e gesto de pinça. A legenda fica ao lado no computador e abaixo no tablet/celular, sem cobrir residências.
+- A roda do mouse sobre o mapa principal aproxima e afasta; fora dele, rola a página. O zoom também funciona pelos botões, teclado e gesto de pinça. A legenda fica ao lado no computador e abaixo no tablet/celular, sem cobrir residências.
 - A consulta vira uma lista de cartões em telas pequenas. A busca aceita acentos, espaços extras e palavras em qualquer ordem. Filtros enquadram os resultados após uma pausa na digitação.
 - A paginação volta ao início quando o critério da busca muda e mantém a página ao recarregar os mesmos dados.
 - O formulário permite limpar a marcação. O pino acompanha as coordenadas atuais e desaparece sem localização. Falha ao iniciar o seletor oferece nova tentativa e preenchimento por coordenadas.

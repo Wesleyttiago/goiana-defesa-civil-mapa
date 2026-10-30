@@ -63,7 +63,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       bibliotecaRef.current = L;
       mapa = L.map(elementoRef.current, {
         center: CENTRO_GOIANA, zoom: 14, minZoom: 3, maxZoom: 19,
-        zoomControl: false, preferCanvas: true, scrollWheelZoom: false, doubleClickZoom: false,
+        zoomControl: false, preferCanvas: true, scrollWheelZoom: true, doubleClickZoom: false,
         zoomAnimation: permiteMovimento(), fadeAnimation: permiteMovimento(),
       });
       mapaRef.current = mapa;

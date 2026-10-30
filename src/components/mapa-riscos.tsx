@@ -60,7 +60,7 @@ function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecar
       })}</ul><div className="orientacao leitura-marcadores">
         <div><span className="exemplo-grupo" aria-hidden="true"><Users size={13}/><b>3</b></span><span><strong>Grupo de famílias</strong>O número é a quantidade de cadastros. Clique para aproximar.</span></div>
         <div><span className="exemplo-pino" aria-hidden="true"><MapPin size={23}/></span><span><strong>Uma família</strong>Clique no pino para ver o representante e abrir o cadastro.</span></div>
-      </div><small className="ajuda-mapa">Zoom: botões + e −, teclado ou gesto de pinça. A roda do mouse rola a página.</small></div>
+      </div><small className="ajuda-mapa">Zoom: roda do mouse sobre o mapa, botões + e −, teclado ou gesto de pinça. Para rolar a página, use a área fora do mapa.</small></div>
     </div>
     {erro && <div className="aviso-dados erro-dados" role="alert"><span>{erro}{pontos.length > 0 && ' Os últimos dados carregados continuam visíveis.'}</span>{aoRecarregar && <button type="button" onClick={aoRecarregar}>Tentar novamente</button>}</div>}
     {descartados > 0 && <p className="aviso-dados" role="status">{descartados} {descartados === 1 ? 'registro inválido, duplicado ou fora do recorte não foi exibido' : 'registros inválidos, duplicados ou fora do recorte não foram exibidos'}.</p>}
