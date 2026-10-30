@@ -10,4 +10,4 @@ Camadas públicas: chuva e rios (APAC) e cartografia territorial de Goiana (SGB,
 
 `npm ci` · `npm run dev` · `npm test` · `npm run build`
 
-[Integração e fontes](docs/INTEGRACAO.md) · [Revisão da interface](docs/REVISAO.md).
+[Integração e fontes](docs/INTEGRACAO.md).
