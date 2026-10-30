@@ -108,7 +108,7 @@ h1 { margin: 0; font-size: clamp(20px, 2vw, 26px); font-weight: 700; letter-spac
 .erro-dados { color: #872330; background: #fff5f6; border-color: #e4b9bd; }
 .erro-dados button { margin-left: auto; color: #872330; }
 .marcador-risco, .agrupamento { border: 0; background: none; }
-.corpo-marcador { position: absolute; left: 3px; top: 1px; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50% 50% 50% 3px; background: var(--cor-risco); color: #fff; box-shadow: 0 2px 5px #102e5060, 0 0 0 1px #18334a80; transform: rotate(-45deg); }
+.corpo-marcador { position: absolute; left: 7px; top: -18px; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50% 50% 50% 3px; background: var(--cor-risco); color: #fff; box-shadow: 0 2px 5px #102e5060, 0 0 0 1px #18334a80; transform: rotate(-45deg); }
 .corpo-marcador b { font-family: 'Montserrat', sans-serif; font-size: 12px; transform: rotate(45deg); }
 .corpo-marcador { transition: transform .2s ease, box-shadow .2s ease; }
 .marcador-risco:not(.familia-selecionada):hover .corpo-marcador { transform: translateY(-2px) rotate(-45deg) scale(1.08); }
@@ -126,12 +126,15 @@ h1 { margin: 0; font-size: clamp(20px, 2vw, 26px); font-weight: 700; letter-spac
 @keyframes abrir-familia { from { opacity: 0; transform: translateY(7px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .agrupamento > span { position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 3px solid #fff; border-radius: 50%; background: var(--cor-risco); color: #fff; box-shadow: 0 0 0 4px #ffffff80, 0 2px 9px #102e5050; font-size: 13px; font-weight: 700; }
 .agrupamento > span { transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, border-color .18s ease; }
-.agrupamento b { font-size: inherit; font-variant-numeric: tabular-nums; }
-.agrupamento .icone-grupo { display: none; width: 14px; height: 14px; flex-shrink: 0; }
-/* No calor, o grupo ganha uma etiqueta neutra; o alvo de toque mantém 44 px. */
-.mapa-base[data-camada-calor='ativo'] .agrupamento > span { top: 5px; width: max-content; min-width: 44px; height: 34px; gap: 5px; padding: 0 8px; border: 1.5px solid #173453; border-radius: 11px; background: #fff; color: #173453; box-shadow: 0 2px 7px #102e5040; }
-.mapa-base[data-camada-calor='ativo'] .agrupamento .icone-grupo { display: block; }
-.mapa-base[data-camada-calor='ativo'] .agrupamento:hover > span { background: #eaf3ff; border-color: #126bd3; }
+.etiqueta-quantidade b { font-size: inherit; font-variant-numeric: tabular-nums; }
+.etiqueta-quantidade .icone-grupo { display: none; width: 14px; height: 14px; flex-shrink: 0; }
+.marcador-risco .etiqueta-quantidade { display: none; }
+/* No calor, grupos e famílias usam a mesma etiqueta; o alvo de toque mantém 44 px. */
+.mapa-base[data-camada-calor='ativo'] .corpo-marcador { display: none; }
+.mapa-base[data-camada-calor='ativo'] .etiqueta-quantidade { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; width: max-content; min-width: 44px; height: 34px; gap: 5px; padding: 0 8px; border: 1.5px solid #173453; border-radius: 11px; background: #fff; color: #173453; box-shadow: 0 2px 7px #102e5040; font-size: 13px; font-weight: 700; transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.mapa-base[data-camada-calor='ativo'] .etiqueta-quantidade .icone-grupo { display: block; }
+.mapa-base[data-camada-calor='ativo'] :is(.agrupamento, .marcador-risco):hover .etiqueta-quantidade { background: #eaf3ff; border-color: #126bd3; }
+.mapa-base[data-camada-calor='ativo'] .familia-selecionada .etiqueta-quantidade { border-color: #126bd3; box-shadow: 0 0 0 3px #126bd340, 0 2px 7px #102e5040; }
 .leitura-marcadores { display: grid; gap: 12px; }
 .leitura-marcadores > div { display: flex; align-items: flex-start; gap: 9px; }
 .leitura-marcadores strong { display: block; margin-bottom: 2px; color: var(--texto); font-size: 10px; }

@@ -28,6 +28,26 @@ interface Props {
 
 const permiteMovimento = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/** Uma etiqueta visual compartilhada por grupos e famílias no modo de calor. */
+function criarEtiquetaQuantidade(total: number) {
+  const etiqueta = document.createElement('span');
+  etiqueta.className = 'etiqueta-quantidade';
+  const icone = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  icone.classList.add('icone-grupo');
+  icone.setAttribute('viewBox', '0 0 24 24');
+  icone.setAttribute('fill', 'none'); icone.setAttribute('stroke', 'currentColor');
+  icone.setAttribute('stroke-width', '2'); icone.setAttribute('stroke-linecap', 'round');
+  icone.setAttribute('stroke-linejoin', 'round'); icone.setAttribute('aria-hidden', 'true');
+  for (const desenho of ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75', 'M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0']) {
+    const caminho = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    caminho.setAttribute('d', desenho); icone.append(caminho);
+  }
+  const quantidade = document.createElement('b');
+  quantidade.textContent = String(total);
+  etiqueta.append(icone, quantidade);
+  return etiqueta;
+}
+
 function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo, aoAtualizarCalor, aoSelecionarFamilia, foco, ambiente }: Props) {
   const elementoRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<Leaflet.Map | null>(null);
@@ -123,21 +143,8 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
         const nivel = maiorNivel(grupo.getAllChildMarkers().map(m => niveis.get(m) ?? 'nao_informado'));
         const estilo = ESTILOS_RISCO[nivel];
         const titulo = `${grupo.getChildCount()} famílias agrupadas. Maior nível de risco informado: ${estilo.rotulo.toLowerCase()}. Ative para aproximar.`;
-        const circulo = document.createElement('span');
+        const circulo = criarEtiquetaQuantidade(grupo.getChildCount());
         circulo.style.setProperty('--cor-risco', estilo.cor);
-        const icone = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        icone.classList.add('icone-grupo');
-        icone.setAttribute('viewBox', '0 0 24 24');
-        icone.setAttribute('fill', 'none'); icone.setAttribute('stroke', 'currentColor');
-        icone.setAttribute('stroke-width', '2'); icone.setAttribute('stroke-linecap', 'round');
-        icone.setAttribute('stroke-linejoin', 'round'); icone.setAttribute('aria-hidden', 'true');
-        for (const desenho of ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75', 'M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0']) {
-          const caminho = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          caminho.setAttribute('d', desenho); icone.append(caminho);
-        }
-        const quantidade = document.createElement('b');
-        quantidade.textContent = String(grupo.getChildCount());
-        circulo.append(icone, quantidade);
         circulo.title = `${grupo.getChildCount()} famílias. Clique para aproximar.`;
         circulo.setAttribute('aria-label', titulo);
         return L.divIcon({ html: circulo, className: 'agrupamento', iconSize: [44, 44], iconAnchor: [22, 22] });
@@ -152,13 +159,18 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       const pin = document.createElement('span');
       pin.className = 'corpo-marcador';
       pin.style.setProperty('--cor-risco', estilo.cor);
+      pin.setAttribute('aria-hidden', 'true');
       const letra = document.createElement('b'); letra.textContent = estilo.letra; pin.append(letra);
+      const etiqueta = criarEtiquetaQuantidade(1);
+      etiqueta.setAttribute('aria-hidden', 'true');
+      const conteudo = document.createElement('div');
+      conteudo.append(pin, etiqueta);
       const titulo = `${nome} — representante familiar. Risco ${estilo.rotulo.toLowerCase()}`;
       const marcador = L.marker([ponto.latitude, ponto.longitude], {
         title: titulo,
         alt: nome,
         keyboard: true,
-        icon: L.divIcon({ html: pin, className: 'marcador-risco', iconSize: [36, 44], iconAnchor: [18, 41], tooltipAnchor: [0, -39] }),
+        icon: L.divIcon({ html: conteudo, className: 'marcador-risco', iconSize: [44, 44], iconAnchor: [22, 22], tooltipAnchor: [0, -39] }),
       });
       const fecharPeloTeclado = (evento: KeyboardEvent) => {
         if (evento.key !== 'Escape') return;
