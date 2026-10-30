@@ -1,0 +1,37 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Eye, MapPin, Users } from 'lucide-react';
+import PainelDialogo from './painel-dialogo';
+import { carregarDetalhe, TIPOS_OCORRENCIA, formatarCpf, type CadastroFamilia, type DadosFamilia } from '@/lib/familias';
+import { ESTILOS_RISCO, nomeDaFamilia } from '@/lib/pontos';
+
+export default function DetalhesFamilia({ familia, endpoint, demonstracao, aoFechar, aoLocalizar }: {
+  familia: CadastroFamilia | null; endpoint?: string; demonstracao: boolean; aoFechar: () => void; aoLocalizar: (familia: CadastroFamilia) => void;
+}) {
+  const [dados, setDados] = useState<DadosFamilia | null>(familia?.dados || null);
+  const [carregando, setCarregando] = useState(!!familia && !familia.dados && !!endpoint); const [erro, setErro] = useState('');
+  const [tentativa, setTentativa] = useState(0); const [mostrarCpf, setMostrarCpf] = useState(false);
+  useEffect(() => {
+    setMostrarCpf(false); setDados(familia?.dados || null); setErro(''); setCarregando(false);
+    if (!familia || familia.dados || !endpoint) return;
+    const abortar = new AbortController(); let cancelado = false;
+    const timeout = setTimeout(() => abortar.abort(), 20000); setCarregando(true);
+    carregarDetalhe(endpoint, familia.id, abortar.signal).then(d => { if (!cancelado) setDados(d); }).catch(() => { if (!cancelado) setErro('Não foi possível consultar os detalhes. Confira a conexão e tente novamente.'); }).finally(() => { clearTimeout(timeout); if (!cancelado) setCarregando(false); });
+    return () => { cancelado = true; clearTimeout(timeout); abortar.abort(); };
+  }, [familia, endpoint, tentativa]);
+  const estilo = familia ? ESTILOS_RISCO[familia.nivelRisco] : null;
+  return <PainelDialogo id="detalhes" aberto={!!familia} aoFechar={aoFechar} titulo="Cadastro da família" subtitulo={demonstracao ? 'Registro fictício · Ambiente de demonstração' : 'Informações do cadastro selecionado'}
+    rodape={familia && <button className="botao-primario" type="button" onClick={() => aoLocalizar(familia)}><MapPin size={16}/>Localizar no mapa</button>}>
+    {familia && <><div className="resumo-familia"><span className="avatar-familia"><Users size={26}/></span><div><span className="sobretitulo">REPRESENTANTE FAMILIAR</span><h3>{nomeDaFamilia(familia)}</h3><span className="badge-risco" style={{ color: estilo!.cor }}><span className="amostra" style={{ backgroundColor: estilo!.cor }}>{estilo!.letra}</span>Risco informado: {estilo!.rotulo.toLowerCase()}</span></div></div>
+      {carregando && <p className="estado-consulta" role="status"><span className="spinner"/>Consultando os dados da família…</p>}
+      {erro && <div className="aviso-dados erro-dados" role="alert">{erro}<button type="button" onClick={() => setTentativa(n => n + 1)}>Tentar novamente</button></div>}
+      {dados && <><section className="secao-detalhe"><h4>Informações da família</h4><dl><div><dt>CPF do representante</dt><dd>{mostrarCpf ? formatarCpf(dados.cpf) : `***.***.***-${dados.cpf.slice(-2)}`}<button type="button" className="revelar-cpf" aria-pressed={mostrarCpf} onClick={() => setMostrarCpf(v => !v)}><Eye size={14}/>{mostrarCpf ? 'Ocultar CPF' : 'Mostrar CPF'}</button></dd></div><div><dt>Telefone</dt><dd>{dados.telefone || 'Não informado'}</dd></div><div><dt>Pessoas na residência</dt><dd>{dados.moradores}</dd></div></dl></section>
+      <section className="secao-detalhe"><h4>Endereço</h4><p>{dados.logradouro}, {dados.numero}<br/>{dados.bairro} · Goiana–PE{dados.complemento && <><br/>{dados.complemento}</>}</p></section>
+      <section className="secao-detalhe"><h4>Avaliação registrada</h4><dl><div><dt>Ocorrência</dt><dd>{TIPOS_OCORRENCIA[dados.tipoOcorrencia]}</dd></div><div><dt>Observações</dt><dd className="texto-observacoes">{dados.observacoes || 'Não informadas'}</dd></div></dl></section></>}
+      {!dados && !carregando && !erro && <p className="aviso-detalhe">Este ponto contém o representante, a classificação e a localização. Os demais dados da família não foram fornecidos pela origem do cadastro.</p>}
+      <section className="secao-detalhe"><h4>Localização da residência</h4><dl><div><dt>Latitude / longitude</dt><dd className="coordenadas-detalhe">{familia.latitude.toFixed(6)}, {familia.longitude.toFixed(6)}</dd></div>{dados && <div><dt>Localização obtida por</dt><dd>{dados.localizacao.origem === 'gps' ? 'GPS do dispositivo' : dados.localizacao.origem === 'mapa' ? 'Marcação no mapa' : 'Coordenadas confirmadas'}</dd></div>}</dl></section>
+      <p className="nota-detalhe">A classificação é informada pela equipe. O mapa de calor indica concentração de cadastros.</p>
+    </>}
+  </PainelDialogo>;
+}
