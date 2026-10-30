@@ -7,7 +7,7 @@ export function useDadosAmbientais(tipo: TipoEstacao, ativo: boolean, revisao: n
   const [estacoes, setEstacoes] = useState<EstacaoAmbiental[]>([]);
   const [carregando, setCarregando] = useState(false); const [erro, setErro] = useState('');
   useEffect(() => {
-    if (!ativo) return;
+    if (!ativo) { setCarregando(false); setErro(''); return; }
     const controle = new AbortController(); let cancelado = false;
     const timeout = setTimeout(() => controle.abort(), 15000);
     setCarregando(true); setErro('');

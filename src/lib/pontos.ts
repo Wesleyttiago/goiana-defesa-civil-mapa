@@ -42,11 +42,14 @@ export function normalizarPontos(dados: unknown): { pontos: PontoRisco[]; descar
   if (!Array.isArray(dados)) throw new Error('Os dados recebidos não estão no formato esperado.');
   const pontos: PontoRisco[] = [];
   let descartados = 0;
+  const ids = new Set<string>();
   dados.forEach((dado: unknown, indice) => {
     if (!dado || typeof dado !== 'object') { descartados++; return; }
     const item = dado as Record<string, unknown>;
     if (!coordenadasValidas(item.latitude, item.longitude)) { descartados++; return; }
-    const id = typeof item.id === 'string' || typeof item.id === 'number' ? String(item.id) : `ponto-${indice + 1}`;
+    const id = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : typeof item.id === 'number' && Number.isFinite(item.id) ? String(item.id) : `ponto-${indice + 1}`;
+    if (ids.has(id)) { descartados++; return; }
+    ids.add(id);
     const nome = typeof item.nomeRepresentante === 'string'
       ? item.nomeRepresentante.replace(/\s+/g, ' ').trim().slice(0, 120) : '';
     pontos.push({ id, ...(nome ? { nomeRepresentante: nome } : {}),

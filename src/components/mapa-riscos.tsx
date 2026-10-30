@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Expand, Layers, LocateFixed, MapPin, RefreshCw } from 'lucide-react';
 import { contarNiveis, ESTILOS_RISCO, type NivelRisco, type PontoRisco } from '@/lib/pontos';
@@ -21,10 +21,16 @@ export interface MapaRiscosProps {
   aoSelecionarFamilia: (ponto: PontoRisco) => void;
   foco: { ponto: PontoRisco; revisao: number } | null;
   ambiente: ConfiguracaoAmbiente;
+  filtroAtivo?: boolean;
 }
 
 /** RF03/RF04: mapa, pontos categorizados, agrupamentos e camada de densidade. */
-function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecarregar, aoSelecionarFamilia, foco, ambiente }: MapaRiscosProps) {
+function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecarregar, aoSelecionarFamilia, foco, ambiente, filtroAtivo = false }: MapaRiscosProps) {
+  useEffect(() => {
+    if (!filtroAtivo || !pontos.length) return;
+    const espera = setTimeout(() => setEnquadrarId(n => n + 1), 350);
+    return () => clearTimeout(espera);
+  }, [pontos, filtroAtivo]);
   const totais = useMemo(() => contarNiveis(pontos), [pontos]);
   const [centralizarId, setCentralizarId] = useState(0);
   const [enquadrarId, setEnquadrarId] = useState(0);
@@ -51,10 +57,10 @@ function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecar
         <div className="legenda-titulo">Famílias no mapa</div><p>Nível de risco informado no cadastro</p><ul aria-label="Legenda dos marcadores">{niveis.map(nivel => {
       const estilo = ESTILOS_RISCO[nivel];
       return <li key={nivel}><span className="amostra" style={{ backgroundColor: estilo.cor }} aria-hidden="true">{estilo.letra}</span><span>{estilo.rotulo}</span><span className="quantidade">{totais[nivel]}</span></li>;
-      })}</ul><span className="orientacao">Clique em uma família para ver o representante.<br/>{' '}Aproxime os grupos para ver cada cadastro.</span></div>
+      })}</ul><span className="orientacao">Clique em uma família para ver o representante.<br/>{' '}Aproxime os grupos para ver cada cadastro.</span><small className="ajuda-mapa">Zoom: botões + e −, teclado ou gesto de pinça. A roda do mouse rola a página.</small></div>
     </div>
     {erro && <div className="aviso-dados erro-dados" role="alert"><span>{erro}{pontos.length > 0 && ' Os últimos dados carregados continuam visíveis.'}</span>{aoRecarregar && <button type="button" onClick={aoRecarregar}>Tentar novamente</button>}</div>}
-    {descartados > 0 && <p className="aviso-dados" role="status">{descartados} {descartados === 1 ? 'registro sem coordenadas válidas não foi exibido' : 'registros sem coordenadas válidas não foram exibidos'}.</p>}
+    {descartados > 0 && <p className="aviso-dados" role="status">{descartados} {descartados === 1 ? 'registro inválido, duplicado ou fora do recorte não foi exibido' : 'registros inválidos, duplicados ou fora do recorte não foram exibidos'}.</p>}
     <footer className="estado-mapa"><output aria-live="polite" data-pontos-plotados={plotagem.processados} data-plotagem-ms={plotagem.duracaoMs}>
       {ocupado ? <><span className="spinner pequeno"/>{carregando ? (pontos.length ? 'Atualizando cadastros…' : 'Carregando cadastros…') : 'Localizando as famílias no mapa…'}</> : erro ? (pontos.length ? 'Falha ao atualizar os cadastros' : 'Cadastros indisponíveis') : plotagem.fase === 'erro' ? 'Mapa indisponível' : <><span className="sinal-pronto"/>{pontos.length.toLocaleString('pt-BR')} {pontos.length === 1 ? 'família no mapa' : 'famílias no mapa'}</>}
     </output>{aoRecarregar && <button type="button" disabled={ocupado} onClick={aoRecarregar}><RefreshCw size={14}/>{carregando ? 'Carregando…' : 'Recarregar cadastros'}</button>}</footer>
