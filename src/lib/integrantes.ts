@@ -1,3 +1,5 @@
+import { cpfValido } from './documentos';
+
 export const PARENTESCOS = {
   conjuge: 'Cônjuge / companheiro(a)', filho: 'Filho(a)', pai_mae: 'Pai / mãe',
   avo: 'Avô / avó', neto: 'Neto(a)', irmao: 'Irmão / irmã', outro: 'Outro vínculo',
@@ -45,4 +47,18 @@ export function lerFamiliares(entrada: unknown): Familiar[] | null {
       dataNascimento: p.dataNascimento, cpf: p.cpf, apoio: p.apoio.trim() });
   }
   return resultado;
+}
+
+export type ErrosFamiliar = Partial<Record<'nomeCompleto' | 'dataNascimento' | 'cpf' | 'apoio' | 'parentesco', string>>;
+export function validarFamiliar(pessoa: Familiar, familiares: readonly Familiar[], cpfRepresentante: string): ErrosFamiliar {
+  const erros: ErrosFamiliar = {};
+  const nome = pessoa.nomeCompleto.replace(/\s+/g, ' ').trim();
+  if (nome.length < 3 || nome.length > 120) erros.nomeCompleto = 'Informe o nome completo, entre 3 e 120 caracteres.';
+  if (calcularIdade(pessoa.dataNascimento) === null) erros.dataNascimento = 'Informe uma data válida, sem data futura.';
+  if (!Object.hasOwn(PARENTESCOS, pessoa.parentesco)) erros.parentesco = 'Escolha um parentesco válido.';
+  if (pessoa.apoio.length > 300) erros.apoio = 'Use até 300 caracteres.';
+  const cpf = pessoa.cpf.replace(/\D/g, '');
+  if (pessoa.cpf.trim() && !cpfValido(pessoa.cpf)) erros.cpf = 'CPF inválido. Confira os dígitos ou deixe em branco se não informado.';
+  else if (cpf && (cpf === cpfRepresentante.replace(/\D/g, '') || familiares.some(p => p.id !== pessoa.id && p.cpf.replace(/\D/g, '') === cpf))) erros.cpf = 'Este CPF já identifica outra pessoa da família.';
+  return erros;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { ESTILOS_RISCO, nomeDaFamilia } from '@/lib/pontos';
 import type { CadastroFamilia } from '@/lib/familias';
@@ -10,7 +10,6 @@ export default function ListaFamilias({ familias, aoSelecionar, aoLocalizar }: {
   familias: readonly CadastroFamilia[]; aoSelecionar: (familia: CadastroFamilia) => void; aoLocalizar: (familia: CadastroFamilia) => void;
 }) {
   const [pagina, setPagina] = useState(0);
-  useEffect(() => setPagina(0), [familias]);
   const totalPaginas = Math.max(1, Math.ceil(familias.length / TAMANHO));
   const paginaAtual = Math.min(pagina, totalPaginas - 1);
   const inicio = paginaAtual * TAMANHO;

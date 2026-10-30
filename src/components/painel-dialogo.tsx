@@ -32,7 +32,12 @@ export default function PainelDialogo({ aberto, aoFechar, titulo, subtitulo, ocu
   }, [aberto]);
 
   return <dialog ref={ref} className="painel-dialogo" data-visivel={visivel} aria-labelledby={`${id}-titulo`} aria-describedby={subtitulo ? `${id}-subtitulo` : undefined}
-    onCancel={evento => { evento.preventDefault(); fechar(); }}>
+    onCancel={evento => { evento.preventDefault(); fechar(); }}
+    onClick={evento => {
+      if (evento.target !== evento.currentTarget) return;
+      const r = evento.currentTarget.getBoundingClientRect();
+      if (evento.clientX < r.left || evento.clientX > r.right || evento.clientY < r.top || evento.clientY > r.bottom) fechar();
+    }}>
     <div className="estrutura-dialogo">
       <header className="cabecalho-dialogo"><div><span className="sobretitulo">DEFESA CIVIL · GOIANA</span><h2 id={`${id}-titulo`}>{titulo}</h2>{subtitulo && <p id={`${id}-subtitulo`}>{subtitulo}</p>}</div>
         <button className="botao-icone" type="button" onClick={fechar} disabled={ocupado} aria-label={`Fechar ${titulo.toLowerCase()}`}><X size={21}/></button></header>

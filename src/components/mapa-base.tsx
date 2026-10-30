@@ -38,6 +38,9 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
   const selecionarRef = useRef(aoSelecionarFamilia);
   selecionarRef.current = aoSelecionarFamilia;
   const [pronto, setPronto] = useState(false);
+  const geracao = useRef(0);
+  const [grupoPronto, setGrupoPronto] = useState(0);
+  const focoAplicado = useRef<number | null>(null);
   const [erroInicial, setErroInicial] = useState(false);
   const [erroRuas, setErroRuas] = useState(false);
   const [tentativa, setTentativa] = useState(0);
@@ -50,7 +53,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
     let mapa: Leaflet.Map | undefined;
     let observador: ResizeObserver | undefined;
     let falhas = 0;
-    setPronto(false); setErroInicial(false); setErroRuas(false);
+    focoAplicado.current = null; setPronto(false); setErroInicial(false); setErroRuas(false);
     aoAtualizar({ fase: 'carregando', processados: 0, total: 0, duracaoMs: 0 });
     async function iniciar() {
       const L = (await import('leaflet')).default;
@@ -60,7 +63,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       bibliotecaRef.current = L;
       mapa = L.map(elementoRef.current, {
         center: CENTRO_GOIANA, zoom: 14, minZoom: 3, maxZoom: 19,
-        zoomControl: false, preferCanvas: true,
+        zoomControl: false, preferCanvas: true, scrollWheelZoom: false, doubleClickZoom: false,
         zoomAnimation: permiteMovimento(), fadeAnimation: permiteMovimento(),
       });
       mapaRef.current = mapa;
@@ -97,6 +100,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
     const mapa = mapaRef.current; const L = bibliotecaRef.current;
     if (!pronto || !mapa || !L) return;
     let cancelado = false;
+    const lote = ++geracao.current;
     const inicio = performance.now();
     const niveis = new WeakMap<Leaflet.Marker, NivelRisco>();
     aoAtualizar({ fase: 'carregando', processados: 0, total: pontos.length, duracaoMs: 0 });
@@ -111,6 +115,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
       chunkProgress: (processados, total) => {
+        if (!cancelado && processados === total) setGrupoPronto(lote);
         if (!cancelado) aoAtualizar({ fase: processados === total ? 'pronto' : 'carregando', processados,
           total, duracaoMs: Math.round(performance.now() - inicio) });
       },
@@ -199,23 +204,29 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       return marcador;
     });
     grupos.addLayers(marcadores);
-    if (!pontos.length) aoAtualizar({ fase: 'pronto', processados: 0, total: 0, duracaoMs: 0 });
+    if (!pontos.length) { setGrupoPronto(lote); aoAtualizar({ fase: 'pronto', processados: 0, total: 0, duracaoMs: 0 }); }
     return () => { cancelado = true; grupos.remove(); gruposRef.current = null; marcadoresRef.current.clear(); };
   }, [pontos, pronto, aoAtualizar]);
 
   useEffect(() => {
-    if (!pronto || !foco || !mapaRef.current) return;
+    if (!pronto || !foco || !mapaRef.current || grupoPronto !== geracao.current || focoAplicado.current === foco.revisao) return;
     const marcador = marcadoresRef.current.get(foco.ponto.id);
     const grupos = gruposRef.current;
-    if (marcador && grupos) grupos.zoomToShowLayer(marcador, () => { if (grupos === gruposRef.current && marcadoresRef.current.get(foco.ponto.id) === marcador) marcador.openPopup(); });
-    else mapaRef.current.setView([foco.ponto.latitude, foco.ponto.longitude], 17, { animate: permiteMovimento(), duration: .45 });
-  }, [foco, pronto]);
+    if (!marcador || !grupos) return;
+    let cancelado = false;
+    grupos.zoomToShowLayer(marcador, () => {
+      if (cancelado || grupos !== gruposRef.current || marcadoresRef.current.get(foco.ponto.id) !== marcador) return;
+      focoAplicado.current = foco.revisao;
+      marcador.openPopup();
+    });
+    return () => { cancelado = true; };
+  }, [foco, pronto, grupoPronto, pontos]);
 
   useEffect(() => { if (pronto) mapaRef.current?.setView(CENTRO_GOIANA, 14, { animate: permiteMovimento(), duration: 0.45 }); }, [centralizarId, pronto]);
   useEffect(() => {
     if (!pronto || !enquadrarId || !bibliotecaRef.current || !mapaRef.current) return;
     if (pontos.length) mapaRef.current.fitBounds(bibliotecaRef.current.latLngBounds(pontos.map(p => [p.latitude, p.longitude])), { padding: [45, 45], maxZoom: 17, animate: permiteMovimento(), duration: 0.45 });
-  // Os pontos não alteram a câmera: enquadrar depende da ação explícita do usuário.
+  // A câmera muda por solicitação de enquadramento, incluindo filtros estabilizados.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enquadrarId, pronto]);
 

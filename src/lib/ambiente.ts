@@ -19,6 +19,12 @@ export function urlEstacoes(tipo: TipoEstacao): string {
   });
   return `${FONTES_AMBIENTAIS[tipo]}/query?${parametros}`;
 }
+function dataCivilValida(data: string): boolean {
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return false;
+  const [dia, mes, ano] = data.split('/').map(Number);
+  const valor = new Date(Date.UTC(ano, mes - 1, dia));
+  return ano >= 1900 && valor.getUTCFullYear() === ano && valor.getUTCMonth() === mes - 1 && valor.getUTCDate() === dia;
+}
 export function normalizarEstacoes(entrada: unknown, tipo: TipoEstacao): EstacaoAmbiental[] {
   if (!entrada || typeof entrada !== 'object' || !('features' in entrada) || !Array.isArray(entrada.features)) throw new Error('A fonte ambiental não retornou os dados esperados.');
   const resultado: EstacaoAmbiental[] = [];
@@ -33,8 +39,8 @@ export function normalizarEstacoes(entrada: unknown, tipo: TipoEstacao): Estacao
     const bruto = p[tipo === 'chuva' ? 'horas_24' : 'levelnow'];
     const data = p[tipo === 'chuva' ? 'ultima_leitura' : 'datacoleta'];
     const hora = p[tipo === 'chuva' ? 'ultima_leitura_hora' : 'horacoleta'];
-    const dataValida = typeof data === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(data);
-    const horaValida = typeof hora === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(hora);
+    const dataValida = typeof data === 'string' && dataCivilValida(data);
+    const horaValida = typeof hora === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(hora);
     const instante = dataValida && horaValida ? `${data.slice(6)}-${data.slice(3, 5)}-${data.slice(0, 2)}T${hora.length === 5 ? hora + ':00' : hora}-03:00` : null;
     resultado.push({ id: `${tipo}-${String(p[tipo === 'chuva' ? 'objectid' : 'id'] ?? resultado.length)}`, tipo,
       nome: nome.trim().slice(0, 150), latitude, longitude,
