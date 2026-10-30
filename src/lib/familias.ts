@@ -16,6 +16,13 @@ export interface DadosFamilia {
 }
 export interface CadastroFamilia extends PontoRisco {
   dados?: DadosFamilia; criadoEm?: string;
+  resumoDemonstrativo?: ResumoDemonstrativo;
+}
+export interface ResumoDemonstrativo {
+  moradores: number;
+  referenciaLocal: string;
+  nucleo: string;
+  areaSgb: { id: string; classe: 'Alta' | 'Média'; camada: 'inundacao' | 'movimento' };
 }
 export type CamposCadastro = Omit<DadosFamilia, 'moradores' | 'localizacao'> & {
   moradores: string; localizacao: LocalizacaoFamilia | null;

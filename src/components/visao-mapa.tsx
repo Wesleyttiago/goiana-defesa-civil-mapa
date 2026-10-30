@@ -11,6 +11,7 @@ import { useDadosAmbientais } from './use-dados-ambientais';
 import type { AreaPlanejada, CamadaTerritorial } from './camadas-ambientais-mapa';
 import { carregarPontos, contarNiveis, nomeDaFamilia, type NivelRisco, type PontoRisco } from '@/lib/pontos';
 import { criarCadastroDemonstrativo, enviarCadastro, type CadastroFamilia, type DadosFamilia } from '@/lib/familias';
+import { carregarDemonstracao } from '@/lib/demonstracao';
 
 const familiasApi = process.env.NEXT_PUBLIC_FAMILIAS_API_URL;
 const apiMapa = process.env.NEXT_PUBLIC_RF03_API_URL;
@@ -20,7 +21,7 @@ const fonte = familiasApi || apiMapa || `${basePath}/dados-exemplo.json`;
 const normalizarBusca = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
 
 export default function VisaoMapa() {
-  const [pontosOrigem, setPontosOrigem] = useState<PontoRisco[]>([]);
+  const [pontosOrigem, setPontosOrigem] = useState<CadastroFamilia[]>([]);
   const [cadastrosSessao, setCadastrosSessao] = useState<CadastroFamilia[]>([]);
   const [descartados, setDescartados] = useState(0);
   const [carregando, setCarregando] = useState(true);
@@ -62,7 +63,7 @@ export default function VisaoMapa() {
     const controlador = new AbortController(); let cancelado = false;
     const limite = setTimeout(() => controlador.abort(), 20000);
     setCarregando(true); setErro('');
-    carregarPontos(fonte, controlador.signal).then(dados => {
+    (demonstracao ? carregarDemonstracao(fonte, controlador.signal) : carregarPontos(fonte, controlador.signal)).then(dados => {
       if (!cancelado) { setPontosOrigem(dados.pontos); setDescartados(dados.descartados); }
     }).catch(e => {
       if (!cancelado) setErro(e instanceof Error && e.name !== 'AbortError' ? e.message : 'O carregamento demorou mais que o esperado. Verifique a conexão e tente novamente.');
@@ -93,7 +94,7 @@ export default function VisaoMapa() {
       <div className="identidade-sistema"><span className="icone-defesa"><ShieldCheck size={25} strokeWidth={1.6}/></span><div><span>Prefeitura de Goiana</span><strong>Defesa Civil</strong></div></div>
       <p className="descricao-sistema">Sistema de Redução de<br/>Riscos de Desastres</p>
       <nav className="navegacao" aria-label="Monitoramento social"><span className="titulo-navegacao">MONITORAMENTO SOCIAL</span><a href="#mapa-familias" aria-current="page"><Map size={20}/><span>Mapa social</span><ChevronRight size={15}/></a><a href="#titulo-cadastros" className="nav-secundaria"><Users size={20}/><span>Consultar famílias</span></a></nav>
-      <div className="base-lateral">{demonstracao && <div className="aviso-demonstracao"><strong><FlaskConical size={16}/>Ambiente demonstrativo</strong><p>Famílias fictícias. Cadastros de teste ficam apenas nesta aba.</p></div>}<div className="assinatura-lateral"><ShieldCheck size={18}/><span>Defesa Civil de Goiana<small>Pernambuco</small></span></div></div>
+      <div className="base-lateral">{demonstracao && <div className="aviso-demonstracao"><strong><FlaskConical size={16}/>Ambiente demonstrativo</strong><p>Famílias fictícias em áreas suscetíveis. Localizações aproximadas para simulação.</p></div>}<div className="assinatura-lateral"><ShieldCheck size={18}/><span>Defesa Civil de Goiana<small>Pernambuco</small></span></div></div>
     </aside>
     <main id="conteudo" tabIndex={-1}>
       <header className="cabecalho"><div><div className="caminho">DRP <ChevronRight size={12}/> Gestão em campo</div><div className="titulo-pagina"><h1>Monitoramento social</h1><span className="municipio-cabecalho"><MapPin size={13}/>Goiana–PE</span></div></div>{demonstracao && <span className="etiqueta-demo"><Info size={16}/>Dados fictícios · Demonstração</span>}</header>

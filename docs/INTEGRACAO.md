@@ -4,7 +4,11 @@ O projeto continua sendo um front-end React com exportação estática para GitH
 
 ## Demonstração pública
 
-Sem uma API configurada, os 50 pontos iniciais e seus representantes são fictícios. O botão **Cadastrar família** permite preencher um exemplo, validar os campos e adicionar um ponto à mesma visualização. O cadastro aparece na busca, na lista paginada, no cartão de detalhes e no calor. A lista e o mapa usam os mesmos filtros.
+Sem uma API configurada, os 500 pontos iniciais e seus representantes são fictícios. Cada ponto inclui um resumo simulado com moradores, referência próxima de via local e a área do SGB na qual foi posicionado. CPF e telefone não integram essa base. O botão **Cadastrar família** permite preencher um exemplo, validar os campos e adicionar um ponto à mesma visualização. O cadastro aparece na busca, na lista paginada, no cartão de detalhes e no calor. A lista e o mapa usam os mesmos filtros.
+
+A distribuição foi cruzada com as áreas edificadas da base cartográfica do SGB e as manchas médias/altas: 34 pontos em alta suscetibilidade à inundação, 376 em média suscetibilidade à inundação e 90 em média suscetibilidade a movimento de massa. São posições aproximadas próximas de vias locais; não são endereços ou residências verificados. Foram evitados eixos viários, rios, córregos, mangues e praias com exclusões técnicas para a simulação. Esses afastamentos não definem APP, margem oficial ou zona de segurança.
+
+O script [gerar-familias-demonstracao.py](../scripts/gerar-familias-demonstracao.py) reproduz a base com semente fixa, a partir de `base_cartografica.gpkg` do SIG público do SGB, usando `shapely` e `pyproj` somente na manutenção. A origem, o hash e os critérios estão em [demonstracao/fontes.json](../public/demonstracao/fontes.json). Vias e hidrografia dessa base contêm dados © OpenStreetMap contributors, sob [ODbL](https://www.openstreetmap.org/copyright). Nomes, número de moradores e níveis de risco das famílias são inventados; a avaliação da família não é calculada pela classe de suscetibilidade territorial. A API real continua aceitando o contrato mínimo do mapa e não incorpora o resumo demonstrativo.
 
 Novos cadastros e rascunhos ficam **somente na memória da aba**. Recarregar os dados pelo botão do mapa os preserva; atualizar ou fechar a página os apaga. Não há localStorage, sessionStorage, IndexedDB ou envio de formulários para terceiros no modo demonstrativo. Use somente dados de teste. O formulário não reproduz ainda o documento de cadastro municipal, que não foi disponibilizado neste repositório.
 

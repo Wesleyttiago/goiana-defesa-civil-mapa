@@ -4,7 +4,7 @@ Cadastro de famílias com localização, mapa interativo, consulta e mapa de cal
 
 [**Acessar o site**](https://wesleyttiago.github.io/goiana-defesa-civil-mapa/)
 
-Demonstração com famílias fictícias. Cadastros de teste ficam nesta aba e são apagados ao atualizar a página.
+Demonstração com 500 famílias fictícias em áreas urbanas de suscetibilidade média ou alta do SGB. Localizações aproximadas; famílias e avaliações simuladas. Novos cadastros de teste ficam nesta aba e são apagados ao atualizar a página.
 
 Camadas públicas: chuva e rios (APAC) e cartografia territorial de Goiana (SGB, 2025). Planejamento de visitas com seleção manual de áreas.
 
