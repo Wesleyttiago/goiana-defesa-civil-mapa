@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type * as Leaflet from 'leaflet';
+import { adicionarLimiteGoiana } from '@/lib/territorio';
 import { CENTRO_GOIANA } from '@/lib/pontos';
 import type { LocalizacaoFamilia } from '@/lib/familias';
 
@@ -26,6 +27,7 @@ export default function SeletorLocalizacao({ localizacao, aoSelecionar }: {
       instancia = L.map(elemento.current, { center: local.current ? [local.current.latitude, local.current.longitude] : CENTRO_GOIANA, zoom: 16, minZoom: 3, maxZoom: 19, scrollWheelZoom: false });
       mapa.current = instancia;
       instancia.attributionControl.setPrefix('Leaflet');
+      adicionarLimiteGoiana(L, instancia);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>' }).addTo(instancia);
       const escolher = (lat: number, lng: number) => selecionar.current({ latitude: Number(lat.toFixed(7)), longitude: Number(lng.toFixed(7)), origem: 'mapa' });
       instancia.on('click', (evento: Leaflet.LeafletMouseEvent) => escolher(evento.latlng.lat, evento.latlng.lng));

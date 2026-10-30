@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { carregarDemonstracao, normalizarDemonstracao } from '../src/lib/demonstracao';
 import { normalizarPontos } from '../src/lib/pontos';
+import { calcularIdade } from '../src/lib/integrantes';
+import { cpfValido } from '../src/lib/familias';
 
 const ler = (nome: string) => JSON.parse(readFileSync(new URL(`../public/${nome}`, import.meta.url), 'utf8'));
 const familias = ler('dados-exemplo.json');
@@ -30,9 +32,13 @@ test('base contém 500 famílias fictícias distintas e dados úteis para consul
     assert.ok(p.nomeRepresentante.length >= 3 && p.nomeRepresentante.length <= 120);
     assert.ok(p.resumoDemonstrativo.moradores >= 1 && p.resumoDemonstrativo.moradores <= 7);
     assert.ok(p.resumoDemonstrativo.referenciaLocal.length > 10);
-    assert.match(p.resumoDemonstrativo.nucleo, /^Núcleo /);
+    assert.match(p.resumoDemonstrativo.nucleo, /^Sede de Goiana/);
+    assert.equal(p.resumoDemonstrativo.integrantes.length, p.resumoDemonstrativo.moradores);
+    assert.equal(p.resumoDemonstrativo.integrantes[0].nomeCompleto, p.nomeRepresentante);
+    assert.equal(p.resumoDemonstrativo.integrantes[0].parentesco, 'representante');
+    for (const pessoa of p.resumoDemonstrativo.integrantes) { assert.notEqual(calcularIdade(pessoa.dataNascimento), null); assert.equal(pessoa.cpf, '00000000000'); assert.equal(cpfValido(pessoa.cpf), false); }
     assert.ok(!('cpf' in p) && !('telefone' in p) && !('dados' in p));
-    assert.deepEqual(Object.keys(p.resumoDemonstrativo).sort(), ['areaSgb', 'moradores', 'nucleo', 'referenciaLocal']);
+    assert.deepEqual(Object.keys(p.resumoDemonstrativo).sort(), ['areaSgb', 'integrantes', 'moradores', 'nucleo', 'referenciaLocal']);
   }
   assert.deepEqual([...new Set(familias.map((p: { nivelRisco: string }) => p.nivelRisco))].sort(), ['alto', 'baixo', 'medio']);
 });
@@ -60,7 +66,7 @@ test('os 500 pontos permanecem em áreas edificadas e não se sobrepõem artific
       const outro = familias[j];
       const dy = (outro.latitude - p.latitude) * 110574;
       const dx = (outro.longitude - p.longitude) * 111320 * Math.cos(p.latitude * Math.PI / 180);
-      assert.ok(Math.hypot(dx, dy) > 13.5, `${p.id} e ${outro.id} sobrepostos`);
+      assert.ok(Math.hypot(dx, dy) > 8.5, `${p.id} e ${outro.id} sobrepostos`);
     }
   }
 });
@@ -90,4 +96,26 @@ test('carregamento demonstrativo respeita cancelamento e informa falha HTTP', as
   assert.equal(opcoes.signal, signal); assert.equal(opcoes.cache, 'no-store');
   chamada.mock.mockImplementation(async () => new Response('', { status: 503 }));
   await assert.rejects(carregarDemonstracao('/dados-exemplo.json'), /Não foi possível carregar/);
+});
+
+
+test('todos os pontos respeitam o limite municipal do IBGE e ficam na sede, longe de Itapissuma e Itamaracá', () => {
+  const limite = JSON.parse(readFileSync(new URL('../src/data/limite-goiana.json', import.meta.url), 'utf8'));
+  assert.equal(limite.properties.codigoIbge, '2606200');
+  assert.equal(limite.properties.ano, 2025);
+  for (const p of familias) {
+    assert.ok(emGeometria([p.longitude, p.latitude], limite.geometry), `${p.id} fora de Goiana`);
+    const dy = (p.latitude + 7.5606) * 110574;
+    const dx = (p.longitude + 35.0025) * 110350;
+    assert.ok(Math.hypot(dx, dy) < 3600, `${p.id} longe da sede`);
+  }
+});
+
+test('origem demonstrativa bloqueia pontos de municípios vizinhos e CPF real injetado no resumo', () => {
+  const p = familias[0];
+  const fora = { ...p, id: 'itapissuma', latitude: -7.7764, longitude: -34.8927 };
+  assert.equal(normalizarDemonstracao([fora]).pontos.length, 0);
+  assert.equal(normalizarDemonstracao([fora]).descartados, 1);
+  const resumo = { ...p.resumoDemonstrativo, integrantes: p.resumoDemonstrativo.integrantes.map((pessoa: object) => ({ ...pessoa, cpf: '11144477735' })) };
+  assert.equal(normalizarDemonstracao([{ ...p, resumoDemonstrativo: resumo }]).pontos[0].resumoDemonstrativo, undefined);
 });

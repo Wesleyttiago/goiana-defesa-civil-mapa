@@ -1,5 +1,7 @@
 import { normalizarPontos } from './pontos';
 import type { CadastroFamilia, ResumoDemonstrativo } from './familias';
+import { lerFamiliares, type PessoaDemonstrativa } from './integrantes';
+import { dentroDeGoiana } from './territorio';
 
 function lerResumo(valor: unknown): ResumoDemonstrativo | undefined {
   if (!valor || typeof valor !== 'object') return;
@@ -11,7 +13,12 @@ function lerResumo(valor: unknown): ResumoDemonstrativo | undefined {
     || !area || typeof area.id !== 'string' || !/^(inundacao|movimento)-\d+$/.test(area.id)
     || !['Alta', 'Média'].includes(String(area.classe)) || !['inundacao', 'movimento'].includes(String(area.camada))
     || !area.id.startsWith(`${area.camada}-`)) return;
-  return { moradores: Number(item.moradores), referenciaLocal: item.referenciaLocal.trim().slice(0, 160), nucleo: item.nucleo.trim().slice(0, 100),
+  if (!Array.isArray(item.integrantes) || item.integrantes.length !== item.moradores
+    || item.integrantes.some((p, i) => !p || typeof p !== 'object' || p.cpf !== '00000000000' || (i === 0 ? p.parentesco !== 'representante' : p.parentesco === 'representante'))) return;
+  const familiares = lerFamiliares(item.integrantes.map((p, i) => ({ ...p, parentesco: i === 0 ? 'outro' : p.parentesco })));
+  if (!familiares) return;
+  const integrantes: PessoaDemonstrativa[] = familiares.map((p, i) => ({ ...p, parentesco: i === 0 ? 'representante' : p.parentesco }));
+  return { moradores: Number(item.moradores), integrantes, referenciaLocal: item.referenciaLocal.trim().slice(0, 160), nucleo: item.nucleo.trim().slice(0, 100),
     areaSgb: { id: area.id, classe: area.classe as 'Alta' | 'Média', camada: area.camada as 'inundacao' | 'movimento' } };
 }
 
@@ -26,9 +33,10 @@ export function normalizarDemonstracao(entrada: unknown): { pontos: CadastroFami
     const resumo = lerResumo(dado.resumoDemonstrativo);
     if (resumo) resumos.set(dado.id, resumo);
   }
-  return { ...base, pontos: base.pontos.map(ponto => {
+  const pontos = base.pontos.filter(p => dentroDeGoiana(p.latitude, p.longitude));
+  return { descartados: base.descartados + base.pontos.length - pontos.length, pontos: pontos.map(ponto => {
     const resumoDemonstrativo = resumos.get(ponto.id);
-    return { ...ponto, ...(resumoDemonstrativo ? { resumoDemonstrativo } : {}) };
+    return { ...ponto, ...(resumoDemonstrativo && resumoDemonstrativo.integrantes[0].nomeCompleto === ponto.nomeRepresentante ? { resumoDemonstrativo } : {}) };
   }) };
 }
 

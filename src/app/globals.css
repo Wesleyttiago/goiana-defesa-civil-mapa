@@ -337,6 +337,33 @@ fieldset:disabled .seletor-localizacao { pointer-events: none; opacity: .6; }
 .nota-detalhe, .aviso-detalhe { padding: 15px; background: #f4f7fa; border-radius: 8px; color: var(--secundario); font-size: 11px; line-height: 1.9; }
 .aviso-detalhe { margin-bottom: 26px; }
 .estado-consulta { display: flex; align-items: center; gap: 9px; color: var(--secundario); font-size: 12px; }
+.composicao-familia h4 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.composicao-familia h4 > span { margin-left: auto; font-size: 10px; font-weight: 500; color: var(--secundario); }
+.resumo-composicao { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 13px; }
+.resumo-composicao > span { display: flex; flex-direction: column; gap: 7px; padding: 12px 10px; border: 1px solid #dce7f2; border-radius: 8px; background: #f6f9fd; font-size: 9px; line-height: 1.6; color: var(--secundario); }
+.resumo-composicao strong { font-size: 21px; color: #183c64; }
+.secao-detalhe .nota-composicao { font-size: 10px; line-height: 1.8; color: var(--secundario); margin: 10px 0 15px; }
+.lista-integrantes { display: flex; flex-direction: column; gap: 10px; }
+.cartao-integrante { border: 1px solid #d4dfeb; border-radius: 9px; overflow: hidden; background: #fff; }
+.cartao-integrante > summary { display: flex; align-items: center; gap: 10px; min-height: 70px; padding: 13px; cursor: pointer; list-style: none; }
+.cartao-integrante > summary::-webkit-details-marker { display: none; }
+.cartao-integrante summary > span:nth-child(2) { min-width: 0; flex: 1; }
+.cartao-integrante summary strong { display: block; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.cartao-integrante summary small { display: block; margin-top: 3px; font-size: 10px; color: var(--secundario); line-height: 1.7; }
+.numero-integrante { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: #edf4fc; color: #245ba3; font-size: 11px; font-weight: 600; }
+.abrir-integrante { font-size: 21px; color: #245ba3; transition: transform .2s ease; }
+.cartao-integrante[open] .abrir-integrante { transform: rotate(45deg); }
+.cartao-integrante[open] > summary { background: #f5f9fe; border-bottom: 1px solid #e2eaf3; }
+.cartao-integrante dl { padding: 16px; }
+.ficha-familiar { border: 1px solid #d4dfeb; border-radius: 9px; background: #f8fafc; padding: 15px; margin: 0 0 14px; }
+.ficha-familiar > header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 12px; }
+.remover-familiar { min-height: 36px; padding: 6px 8px; color: #a12232; font-size: 10px; }
+.adicionar-familiar { width: 100%; border-style: dashed; font-size: 11px; color: #0958b3; min-height: 44px; }
+.localizacao-confirmada.fora-municipio { color: #a12232; background: #fff6f6; border-color: #e4b9bd; }
+.referencias-risco { padding: 16px; border: 1px solid var(--borda); border-radius: 9px; background: #f8fafc; margin: 16px 0; }
+.referencias-risco h3 { margin: 0 0 10px; font-size: 12px; }
+.referencias-risco p { font-size: 11px; line-height: 1.9; margin: 0 0 12px; color: var(--secundario); }
+.referencias-risco a { display: flex; align-items: center; gap: 5px; width: fit-content; margin-top: 10px; color: #0958b3; font-size: 10px; line-height: 1.8; }
 @media (max-width: 1100px) {
   .indicadores > div { padding: 14px 11px; gap: 9px; }
   .icone-indicador { width: 35px; height: 35px; }
@@ -458,3 +485,7 @@ fieldset:disabled .seletor-localizacao { pointer-events: none; opacity: .6; }
   .carregando-territorio { max-width: calc(100% - 75px); font-size: 10px; }
   .area-planejada { padding: 14px; }
 }
+
+@keyframes abrir-ficha { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.cartao-integrante[open] dl { animation: abrir-ficha .18s ease-out; }
+@media (prefers-reduced-motion: reduce) { .cartao-integrante[open] dl { animation: none; } .abrir-integrante { transition: none; } }
