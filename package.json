@@ -11,22 +11,20 @@
   "dependencies": {
     "@fontsource/montserrat": "^5.2.8",
     "leaflet": "1.9.4",
+    "leaflet.markercluster": "1.5.3",
     "lucide-react": "^0.577.0",
     "next": "16.4.2",
     "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "leaflet.markercluster": "1.5.3",
-    "leaflet.heat": "0.2.0"
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
+    "@types/leaflet.markercluster": "1.5.6",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "tsx": "^4.21.0",
-    "typescript": "~5.9.3",
-    "@types/leaflet.markercluster": "1.5.6",
-    "@types/leaflet.heat": "0.2.5"
+    "typescript": "~5.9.3"
   },
   "engines": {
     "node": ">=20.9.0"

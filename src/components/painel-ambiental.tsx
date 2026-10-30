@@ -1,5 +1,6 @@
 'use client';
 
+import Recolhivel from './recolhivel';
 import { CloudRain, ExternalLink, Layers, RefreshCw, Waves } from 'lucide-react';
 import { FONTES_AMBIENTAIS, formatarMedicao, leituraAntiga, type EstacaoAmbiental } from '@/lib/ambiente';
 import type { AreaPlanejada, CamadaTerritorial } from './camadas-ambientais-mapa';
@@ -14,7 +15,7 @@ export default function PainelAmbiental({ chuvaAtiva, rioAtivo, aoChuva, aoRio, 
   areas: AreaPlanejada[]; aoSelecionarArea: (area: AreaPlanejada | null) => void;
 }) {
   const ativo = chuvaAtiva || rioAtivo || camada !== 'nenhuma';
-  return <section className="painel-ambiental" aria-label="Contexto ambiental e planejamento"><details><summary><span className="icone-contexto"><Layers size={19}/></span><span><strong>Camadas ambientais</strong><small>Chuva, rios e referência geológica para apoiar as visitas.</small></span><span className="estado-contexto">{ativo ? 'Camadas ativadas' : 'Explorar camadas'}</span></summary>
+  return <section className="painel-ambiental" aria-label="Contexto ambiental e planejamento"><Recolhivel cabecalho={<><span className="icone-contexto"><Layers size={19}/></span><span><strong>Camadas ambientais</strong><small>Chuva, rios e referência geológica para apoiar as visitas.</small></span><span className="estado-contexto">{ativo ? 'Camadas ativadas' : 'Explorar camadas'}</span></>}>
     <div className="conteudo-ambiental"><p className="nota-ambiente">Leituras públicas da APAC e cartografia do SGB. Essas camadas são independentes dos cadastros fictícios da demonstração.</p>
       <div className="grade-ambiental">{(['chuva', 'rio'] as const).map(tipo => {
         const dados = tipo === 'chuva' ? chuva : rio; const ligado = tipo === 'chuva' ? chuvaAtiva : rioAtivo;
@@ -37,5 +38,5 @@ export default function PainelAmbiental({ chuvaAtiva, rioAtivo, aoChuva, aoRio, 
       <div className="referencias-risco"><h3>Histórico que orienta a demonstração</h3><p>O Plano de Contingência municipal registra enchentes no Canal do Rio Goiana em 2011, 2018 e 2022, e deslizamento em Cocota em 2022. Os 500 cadastros fictícios estão concentrados em áreas urbanas suscetíveis da sede, sem representar famílias atingidas de verdade.</p><a href="https://goiana.pe.gov.br/wp-content/uploads/2023/08/Plano-de-Conting%C3%AAncia.pdf" target="_blank" rel="noopener noreferrer">Plano de Contingência · seção 11 <ExternalLink size={12}/></a><a href="https://www.goiana.pe.gov.br/portal/noticias/0/3/4800/prefeitura-de-goiana-habilita-moradores-atingidos-pelas-chuvas-para-saque-do-fgts-calamidade" target="_blank" rel="noopener noreferrer">Localidades atingidas · Prefeitura, 2026 <ExternalLink size={12}/></a></div>
       <footer className="rodape-ambiental"><span>Horários de leitura informados pela origem. Medições de estação não são previsões de inundação.</span><button type="button" disabled={(!chuvaAtiva && !rioAtivo) || chuva.carregando || rio.carregando} onClick={aoAtualizar}><RefreshCw size={14}/>Atualizar leituras</button></footer>
     </div>
-  </details>{area && <div className="area-planejada"><div><strong>Área selecionada para visitas</strong><p>{area.camada === 'inundacao' ? 'Inundação' : 'Movimento de massa'} · Suscetibilidade {area.descricao.toLocaleLowerCase('pt-BR')} · SGB 2025</p><small>Seleção do gestor nesta sessão. A localização de cada residência será confirmada no cadastro.</small></div><div><button type="button" onClick={aoLimparArea}>Limpar área</button><button className="botao-primario" type="button" onClick={aoCadastrar}>Cadastrar família</button></div></div>}</section>;
+  </Recolhivel>{area && <div className="area-planejada"><div><strong>Área selecionada para visitas</strong><p>{area.camada === 'inundacao' ? 'Inundação' : 'Movimento de massa'} · Suscetibilidade {area.descricao.toLocaleLowerCase('pt-BR')} · SGB 2025</p><small>Seleção do gestor nesta sessão. A localização de cada residência será confirmada no cadastro.</small></div><div><button type="button" onClick={aoLimparArea}>Limpar área</button><button className="botao-primario" type="button" onClick={aoCadastrar}>Cadastrar família</button></div></div>}</section>;
 }

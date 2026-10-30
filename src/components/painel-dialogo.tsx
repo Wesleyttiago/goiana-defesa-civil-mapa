@@ -18,15 +18,17 @@ export default function PainelDialogo({ aberto, aoFechar, titulo, subtitulo, ocu
     temporizador.current = setTimeout(() => {
       temporizador.current = null;
       ref.current?.close(); aoFechar(); acionador.current?.focus();
-    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200);
+    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260);
   }, [aoFechar, ocupado]);
   useEffect(() => {
     if (!aberto) return;
     acionador.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     ref.current?.showModal();
-    const frame = requestAnimationFrame(() => setVisivel(true));
+    let segundoFrame: number | undefined;
+    // Dois frames garantem o estado inicial antes da transição, inclusive no Safari.
+    const frame = requestAnimationFrame(() => { segundoFrame = requestAnimationFrame(() => { if (!temporizador.current) setVisivel(true); }); });
     const anterior = document.body.style.overflow; document.body.style.overflow = 'hidden';
-    return () => { cancelAnimationFrame(frame); if (temporizador.current) clearTimeout(temporizador.current); temporizador.current = null; document.body.style.overflow = anterior; ref.current?.close(); setVisivel(false); };
+    return () => { cancelAnimationFrame(frame); if (segundoFrame !== undefined) cancelAnimationFrame(segundoFrame); if (temporizador.current) clearTimeout(temporizador.current); temporizador.current = null; document.body.style.overflow = anterior; ref.current?.close(); setVisivel(false); };
   }, [aberto]);
 
   return <dialog ref={ref} className="painel-dialogo" data-visivel={visivel} aria-labelledby={`${id}-titulo`} aria-describedby={subtitulo ? `${id}-subtitulo` : undefined}
