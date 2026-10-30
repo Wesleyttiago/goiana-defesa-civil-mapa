@@ -11,6 +11,7 @@
 - A perda de conexão mostra um aviso. Cancelar a consulta ambiental não deixa o carregamento preso; datas impossíveis da APAC não aparecem como medições recentes. Zero de chuva continua sendo uma medição válida.
 - IDs repetidos na origem são descartados para manter lista, mapa e calor consistentes. Nomes e documentos foram separados em funções pequenas para facilitar a manutenção.
 - Os painéis mantêm as transições leves e respeitam a preferência de reduzir movimentos. Fechar um painel retorna o foco; localizar uma família transfere o foco ao mapa.
+- No mapa de calor, os agrupamentos agora usam uma etiqueta branca com ícone de pessoas e quantidade. Os números deixaram de parecer soltos sobre as manchas; a legenda distingue grupo de famílias e pino individual. O alvo de toque continua com 44 px.
 
 ## Verificação
 

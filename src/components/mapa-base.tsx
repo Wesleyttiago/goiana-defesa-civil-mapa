@@ -125,8 +125,20 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
         const titulo = `${grupo.getChildCount()} famílias agrupadas. Maior nível de risco informado: ${estilo.rotulo.toLowerCase()}. Ative para aproximar.`;
         const circulo = document.createElement('span');
         circulo.style.setProperty('--cor-risco', estilo.cor);
-        circulo.textContent = String(grupo.getChildCount());
-        circulo.title = titulo;
+        const icone = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icone.classList.add('icone-grupo');
+        icone.setAttribute('viewBox', '0 0 24 24');
+        icone.setAttribute('fill', 'none'); icone.setAttribute('stroke', 'currentColor');
+        icone.setAttribute('stroke-width', '2'); icone.setAttribute('stroke-linecap', 'round');
+        icone.setAttribute('stroke-linejoin', 'round'); icone.setAttribute('aria-hidden', 'true');
+        for (const desenho of ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75', 'M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0']) {
+          const caminho = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          caminho.setAttribute('d', desenho); icone.append(caminho);
+        }
+        const quantidade = document.createElement('b');
+        quantidade.textContent = String(grupo.getChildCount());
+        circulo.append(icone, quantidade);
+        circulo.title = `${grupo.getChildCount()} famílias. Clique para aproximar.`;
         circulo.setAttribute('aria-label', titulo);
         return L.divIcon({ html: circulo, className: 'agrupamento', iconSize: [44, 44], iconAnchor: [22, 22] });
       },
