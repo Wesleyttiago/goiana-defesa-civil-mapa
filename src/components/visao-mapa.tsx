@@ -20,7 +20,8 @@ export default function VisaoMapa() {
     const controlador = new AbortController();
     let cancelado = false;
     const limite = setTimeout(() => controlador.abort(), 20000);
-    setCarregando(true); setErro(''); setPontos([]); setDescartados(0);
+    // Preserva a visualização enquanto uma atualização está em andamento.
+    setCarregando(true); setErro('');
     carregarPontos(fonte, controlador.signal).then(dados => {
       if (!cancelado) { setPontos(dados.pontos); setDescartados(dados.descartados); }
     }).catch(e => {
@@ -40,7 +41,7 @@ export default function VisaoMapa() {
     </aside>
     <main id="conteudo" tabIndex={-1}>
       <header className="cabecalho"><div><div className="caminho">DRP <ChevronRight size={12}/> Mapa social</div><div className="titulo-pagina"><h1>Monitoramento social</h1><span className="municipio-cabecalho"><MapPin size={13}/>Goiana–PE</span></div></div>{!apiUrl && <span className="etiqueta-demo"><Info size={16}/>Dados fictícios · Demonstração</span>}</header>
-      <div className="conteudo-mapa"><div className="introducao-mapa"><h2>Mapa de riscos</h2><p>Localização dos cadastros por nível de vulnerabilidade.</p></div>
+      <div className="conteudo-mapa"><div className="introducao-mapa"><h2>Famílias cadastradas</h2><p>Localização das famílias e vulnerabilidade informada.</p></div>
         <MapaRiscos pontos={pontos} carregando={carregando} erro={erro} descartados={descartados} aoRecarregar={() => setRevisao(n => n + 1)}/>
         <footer className="rodape-pagina"><span>Defesa Civil de Goiana · Pernambuco</span><span>Classificações informadas na origem dos dados.</span></footer>
       </div>

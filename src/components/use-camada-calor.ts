@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
-import { GRADIENTE_CALOR, prepararPontosCalor, type PontoCalor } from '@/lib/calor';
+import { opcoesCalorNoZoom, prepararPontosCalor, type PontoCalor } from '@/lib/calor';
 import type { PontoRisco } from '@/lib/pontos';
 
 export interface EstadoCalor {
@@ -32,19 +32,27 @@ export function useCamadaCalor({ mapa, pontos, ativo }: Props) {
   useEffect(() => {
     dadosRef.current = dados;
     const camada = camadaRef.current;
-    if (camada && mapa?.hasLayer(camada)) {
+    if (ativo && camada && mapa?.hasLayer(camada) && aplicadosRef.current !== dados) {
       camada.setLatLngs(dados);
       aplicadosRef.current = dados;
       setFase(dados.length ? 'ativo' : 'vazio');
     }
-  }, [dados, mapa]);
+  }, [dados, mapa, ativo]);
 
   useEffect(() => {
     let cancelado = false;
+    let quadro: number | undefined;
+    let remocao: ReturnType<typeof setTimeout> | undefined;
+    let removerEscutaZoom: (() => void) | undefined;
+    const canvas = () => mapa?.getPanes().overlayPane.querySelector<HTMLCanvasElement>('.leaflet-heatmap-layer');
     if (!ativo || !mapa) {
-      camadaRef.current?.remove();
       setFase('desligado');
-      return;
+      const camada = camadaRef.current;
+      const elemento = canvas();
+      if (elemento) elemento.style.opacity = '0';
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !elemento) camada?.remove();
+      else remocao = setTimeout(() => camada?.remove(), 180);
+      return () => { if (remocao) clearTimeout(remocao); };
     }
     const mapaAtual = mapa;
     setFase('carregando');
@@ -54,27 +62,38 @@ export function useCamadaCalor({ mapa, pontos, ativo }: Props) {
       if (cancelado) return;
       // A mesma camada e o mesmo canvas são reaproveitados nas alternâncias.
       if (!camadaRef.current) {
-        camadaRef.current = L.heatLayer(dadosRef.current, {
-          radius: 30, blur: 24, minOpacity: 0.26, maxZoom: 14, max: 3,
-          gradient: GRADIENTE_CALOR,
-        });
+        camadaRef.current = L.heatLayer(dadosRef.current, opcoesCalorNoZoom(mapaAtual.getZoom()));
         aplicadosRef.current = dadosRef.current;
       }
       const camada = camadaRef.current;
       // Reanexa antes de atualizar: o plugin precisa de um mapa para redesenhar.
-      if (!mapaAtual.hasLayer(camada)) camada.addTo(mapaAtual);
+      const estavaVisivel = mapaAtual.hasLayer(camada);
+      if (!estavaVisivel) camada.addTo(mapaAtual);
       if (aplicadosRef.current !== dadosRef.current) {
         camada.setLatLngs(dadosRef.current);
         aplicadosRef.current = dadosRef.current;
       }
+      const ajustarEscala = () => {
+        const opcoes = opcoesCalorNoZoom(mapaAtual.getZoom());
+        camada.setOptions(opcoes);
+        canvas()?.setAttribute('data-raio-calor', String(opcoes.radius));
+      };
+      ajustarEscala();
+      mapaAtual.on('zoomend', ajustarEscala);
+      removerEscutaZoom = () => mapaAtual.off('zoomend', ajustarEscala);
       // A descrição textual fica na legenda; os marcadores continuam acessíveis.
-      mapaAtual.getPanes().overlayPane.querySelector('.leaflet-heatmap-layer')?.setAttribute('aria-hidden', 'true');
+      const elemento = canvas();
+      if (elemento) {
+        elemento.setAttribute('aria-hidden', 'true');
+        if (!estavaVisivel) elemento.style.opacity = '0';
+        quadro = requestAnimationFrame(() => { if (!cancelado) elemento.style.opacity = '0.84'; });
+      }
       setFase(dadosRef.current.length ? 'ativo' : 'vazio');
     }
     mostrar().catch(() => {
       if (!cancelado) { camadaRef.current?.remove(); setFase('erro'); }
     });
-    return () => { cancelado = true; camadaRef.current?.remove(); };
+    return () => { cancelado = true; removerEscutaZoom?.(); if (quadro !== undefined) cancelAnimationFrame(quadro); };
   }, [ativo, mapa, tentativa]);
 
   const estado = useMemo<EstadoCalor>(() => ({ fase, quantidade: dados.length }), [fase, dados.length]);

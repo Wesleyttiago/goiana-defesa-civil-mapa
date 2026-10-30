@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepararPontosCalor } from '../src/lib/calor';
+import { opcoesCalorNoZoom, prepararPontosCalor } from '../src/lib/calor';
 import type { PontoRisco } from '../src/lib/pontos';
 
 test('calor usa apenas coordenadas válidas e deixa os dados da origem intactos', () => {
@@ -36,4 +36,22 @@ test('preparação de 2.000 cadastros preserva quantidade e localização', () =
 
 test('lista vazia gera uma camada sem pontos artificiais', () => {
   assert.deepEqual(prepararPontosCalor([]), []);
+});
+
+test('a área do calor acompanha o zoom da cidade sem trocar a escala de intensidade', () => {
+  const referencia = opcoesCalorNoZoom(14);
+  for (const zoom of [10, 12, 13, 14, 15, 16, 17]) {
+    const atual = opcoesCalorNoZoom(zoom);
+    // Ao normalizar a projeção do mapa, a área suavizada permanece a mesma.
+    assert.equal((atual.radius + atual.blur) / (2 ** (zoom - 14)), referencia.radius + referencia.blur);
+    assert.equal(atual.max, referencia.max);
+    // A atenuação 2^(maxZoom-zoom) do Leaflet.heat deve permanecer desligada.
+    assert.equal(1 / (2 ** Math.max(0, Math.min(atual.maxZoom - zoom, 12))), 1);
+  }
+});
+
+test('zoom extremo ou inválido não cria um kernel sem limite de memória', () => {
+  assert.deepEqual(opcoesCalorNoZoom(NaN), opcoesCalorNoZoom(14));
+  assert.deepEqual(opcoesCalorNoZoom(22), opcoesCalorNoZoom(17));
+  assert.ok(opcoesCalorNoZoom(0).radius > 0);
 });
