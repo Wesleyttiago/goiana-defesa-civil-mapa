@@ -8,9 +8,9 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DRP | Defesa Civil de Goiana — Mapa de riscos",
+  title: "DRP | Defesa Civil de Goiana — Mapa de famílias",
   description:
-    "RF03 e RF04 — Mapa interativo de Goiana com marcadores por risco e camada de mapa de calor.",
+    "RF03 e RF04 — Famílias cadastradas em Goiana, identificação do representante e mapa de calor.",
   robots: { index: false, follow: false },
 };
 

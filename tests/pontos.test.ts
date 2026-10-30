@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   carregarPontos, contarNiveis, coordenadasValidas, ESTILOS_RISCO,
-  maiorNivel, normalizarNivel, normalizarPontos,
+  maiorNivel, nomeDaFamilia, normalizarNivel, normalizarPontos,
 } from '../src/lib/pontos';
 
 test('coordenadas devem ser números finitos dentro dos limites geográficos', () => {
@@ -10,6 +10,21 @@ test('coordenadas devem ser números finitos dentro dos limites geográficos', (
   assert.equal(coordenadasValidas(-90, 180), true);
   for (const [lat, lng] of [[null, 0], ['', 0], ['-7.56', -35], [NaN, -35], [0, Infinity], [90.1, 0], [0, -180.1]]) {
     assert.equal(coordenadasValidas(lat, lng), false);
+  }
+});
+
+test('representante é normalizado sem copiar dados pessoais além do nome solicitado', () => {
+  const { pontos } = normalizarPontos([{ id: 1, latitude: -7.56, longitude: -35,
+    nomeRepresentante: '  Ana  Clara\nSantos  ', nivelRisco: 'alto', cpf: 'não copiar', telefone: 'não copiar' }]);
+  assert.deepEqual(pontos, [{ id: '1', nomeRepresentante: 'Ana Clara Santos', latitude: -7.56, longitude: -35, nivelRisco: 'alto' }]);
+  assert.equal(nomeDaFamilia(pontos[0]), 'Ana Clara Santos');
+});
+
+test('fonte sem representante continua compatível e não recebe nome inventado', () => {
+  for (const nomeRepresentante of [null, undefined, '', '   ', 42]) {
+    const { pontos } = normalizarPontos([{ id: 'legado-1', latitude: -7.56, longitude: -35, nomeRepresentante }]);
+    assert.equal('nomeRepresentante' in pontos[0], false);
+    assert.equal(nomeDaFamilia(pontos[0]), 'Família legado-1');
   }
 });
 

@@ -33,27 +33,27 @@ function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecar
   const niveis: NivelRisco[] = ['baixo', 'medio', 'alto'];
   if (totais.nao_informado) niveis.push('nao_informado');
 
-  return <section className="painel-mapa" aria-label="Mapa e legenda de riscos">
+  return <section className="painel-mapa" aria-label="Mapa de famílias e legenda de vulnerabilidade">
     <div className="barra-mapa"><div className="municipio"><MapPin size={17}/><strong>Goiana</strong><span>Pernambuco</span></div><div className="acoes-mapa">
       <button type="button" disabled={plotagem.fase !== 'pronto'} onClick={() => setCentralizarId(n => n + 1)}><LocateFixed size={16}/><span>Ir para Goiana</span></button>
-      <button type="button" disabled={ocupado || !pontos.length} onClick={() => setEnquadrarId(n => n + 1)}><Expand size={16}/><span>Ajustar aos pontos</span></button>
+      <button type="button" disabled={ocupado || !pontos.length} onClick={() => setEnquadrarId(n => n + 1)}><Expand size={16}/><span>Ajustar às famílias</span></button>
     </div></div>
     <div className="area-mapa"><MapaBase pontos={pontos} centralizarId={centralizarId} enquadrarId={enquadrarId} aoAtualizar={atualizarPlotagem} calorAtivo={calorAtivo} aoAtualizarCalor={atualizarCalor}/>
       {!carregando && !erro && plotagem.fase === 'pronto' && !pontos.length && <div className="aviso-vazio" role="status">Nenhum ponto disponível para exibir. O mapa continua pronto para receber dados.</div>}
       <div className="legenda">
         <div className="controle-calor"><Layers size={17}/><span>Mapa de calor</span><button type="button" role="switch" aria-label="Mapa de calor" aria-checked={calorAtivo} aria-describedby="estado-calor" disabled={!calorAtivo && (ocupado || !pontos.length || !!erro || plotagem.fase === 'erro')} onClick={() => setCalorAtivo(ativo => !ativo)}><span className="trilho-calor" aria-hidden="true"><span/></span></button></div>
         <output id="estado-calor" className="estado-calor" aria-live="polite">{!calorAtivo ? 'Desligado' : estadoCalor.fase === 'carregando' || estadoCalor.fase === 'desligado' ? <><span className="spinner pequeno"/>Preparando camada…</> : estadoCalor.fase === 'erro' ? 'Camada indisponível' : estadoCalor.fase === 'vazio' ? 'Nenhum ponto para gerar calor.' : `Ativado · ${estadoCalor.quantidade.toLocaleString('pt-BR')} cadastros`}</output>
-        {calorAtivo && estadoCalor.fase !== 'erro' && <div className="legenda-calor"><strong>Concentração de cadastros</strong><span className="escala-calor" style={{ backgroundImage: ESCALA_CALOR }} aria-hidden="true"/><div className="extremos-calor"><span>Menor</span><span>Maior</span></div><p>Quanto mais pontos próximos, maior a concentração.</p></div>}
-        <div className="legenda-titulo">Leitura dos marcadores</div><p>Nível de risco dos cadastros</p><ul aria-label="Legenda dos marcadores">{niveis.map(nivel => {
+        <div className="expansao-calor" data-aberto={calorAtivo && estadoCalor.fase !== 'erro'} aria-hidden={!calorAtivo || estadoCalor.fase === 'erro'}><div><div className="legenda-calor"><strong>Concentração de famílias</strong><span className="escala-calor" style={{ backgroundImage: ESCALA_CALOR }} aria-hidden="true"/><div className="extremos-calor"><span>Menor</span><span>Maior</span></div><p>Quanto mais cadastros próximos, maior a concentração.</p></div></div></div>
+        <div className="legenda-titulo">Famílias no mapa</div><p>Nível de risco informado no cadastro</p><ul aria-label="Legenda dos marcadores">{niveis.map(nivel => {
       const estilo = ESTILOS_RISCO[nivel];
       return <li key={nivel}><span className="amostra" style={{ backgroundColor: estilo.cor }} aria-hidden="true">{estilo.letra}</span><span>{estilo.rotulo}</span><span className="quantidade">{totais[nivel]}</span></li>;
-      })}</ul><span className="orientacao">Pontos = cadastros localizados.<br/>{' '}Aproxime os grupos para ver os pontos.</span></div>
+      })}</ul><span className="orientacao">Clique em uma família para ver o representante.<br/>{' '}Aproxime os grupos para ver cada cadastro.</span></div>
     </div>
-    {erro && <div className="aviso-dados erro-dados" role="alert"><span>{erro}</span>{aoRecarregar && <button type="button" onClick={aoRecarregar}>Tentar novamente</button>}</div>}
+    {erro && <div className="aviso-dados erro-dados" role="alert"><span>{erro}{pontos.length > 0 && ' Os últimos dados carregados continuam visíveis.'}</span>{aoRecarregar && <button type="button" onClick={aoRecarregar}>Tentar novamente</button>}</div>}
     {descartados > 0 && <p className="aviso-dados" role="status">{descartados} {descartados === 1 ? 'registro sem coordenadas válidas não foi exibido' : 'registros sem coordenadas válidas não foram exibidos'}.</p>}
     <footer className="estado-mapa"><output aria-live="polite" data-pontos-plotados={plotagem.processados} data-plotagem-ms={plotagem.duracaoMs}>
-      {ocupado ? <><span className="spinner pequeno"/>{carregando ? 'Carregando pontos…' : 'Representando os pontos no mapa…'}</> : erro ? 'Pontos indisponíveis' : plotagem.fase === 'erro' ? 'Mapa indisponível' : <><span className="sinal-pronto"/>{pontos.length.toLocaleString('pt-BR')} {pontos.length === 1 ? 'ponto representado' : 'pontos representados'}</>}
-    </output>{aoRecarregar && <button type="button" disabled={ocupado} onClick={aoRecarregar}><RefreshCw size={14}/>{carregando ? 'Carregando…' : 'Recarregar pontos'}</button>}</footer>
+      {ocupado ? <><span className="spinner pequeno"/>{carregando ? (pontos.length ? 'Atualizando cadastros…' : 'Carregando cadastros…') : 'Localizando as famílias no mapa…'}</> : erro ? (pontos.length ? 'Falha ao atualizar os cadastros' : 'Cadastros indisponíveis') : plotagem.fase === 'erro' ? 'Mapa indisponível' : <><span className="sinal-pronto"/>{pontos.length.toLocaleString('pt-BR')} {pontos.length === 1 ? 'família no mapa' : 'famílias no mapa'}</>}
+    </output>{aoRecarregar && <button type="button" disabled={ocupado} onClick={aoRecarregar}><RefreshCw size={14}/>{carregando ? 'Carregando…' : 'Recarregar cadastros'}</button>}</footer>
   </section>;
 }
 

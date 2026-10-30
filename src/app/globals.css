@@ -17,6 +17,8 @@ button, a { touch-action: manipulation; }
 button svg, a svg { flex-shrink: 0; }
 button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 13px; border: 1px solid #cad6e4; border-radius: 7px; color: var(--texto); background: #fff; font-size: 12px; font-weight: 600; }
 button:hover:not(:disabled) { border-color: var(--azul); color: #0958b3; background: #f1f7ff; }
+button { transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+button:active:not(:disabled) { transform: translateY(1px); }
 :focus-visible { outline: 3px solid #f4bb24; outline-offset: 3px; }
 .pular-conteudo { position: fixed; top: 10px; left: 15px; z-index: 3000; padding: 15px 20px; border-radius: 7px; background: #fff; color: var(--marinho); transform: translateY(-160%); }
 .pular-conteudo:focus { transform: translateY(0); }
@@ -80,7 +82,10 @@ h1 { margin: 0; font-size: clamp(20px, 2vw, 26px); font-weight: 700; letter-spac
 .escala-calor { display: block; height: 9px; margin: 12px 0 6px; border: 1px solid #526176; border-radius: 5px; }
 .extremos-calor { display: flex; justify-content: space-between; color: var(--secundario); font-size: 9px; }
 .legenda-calor p { color: var(--secundario); margin: 9px 0 0; font-size: 10px; line-height: 1.7; }
-.leaflet-heatmap-layer { pointer-events: none; opacity: .84; }
+.leaflet-heatmap-layer { pointer-events: none; opacity: 0; transition: opacity .18s ease; }
+.expansao-calor { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .22s ease, opacity .18s ease; }
+.expansao-calor[data-aberto='true'] { grid-template-rows: 1fr; opacity: 1; }
+.expansao-calor > div { overflow: hidden; min-height: 0; }
 .legenda ul { display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0 0 15px; list-style: none; }
 .legenda li { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .amostra { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 700; }
@@ -104,7 +109,24 @@ h1 { margin: 0; font-size: clamp(20px, 2vw, 26px); font-weight: 700; letter-spac
 .marcador-risco, .agrupamento { border: 0; background: none; }
 .corpo-marcador { position: absolute; left: 3px; top: 1px; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50% 50% 50% 3px; background: var(--cor-risco); color: #fff; box-shadow: 0 2px 5px #102e5060, 0 0 0 1px #18334a80; transform: rotate(-45deg); }
 .corpo-marcador b { font-family: 'Montserrat', sans-serif; font-size: 12px; transform: rotate(45deg); }
+.corpo-marcador { transition: transform .2s ease, box-shadow .2s ease; }
+.marcador-risco:not(.familia-selecionada):hover .corpo-marcador { transform: translateY(-2px) rotate(-45deg) scale(1.08); }
+.familia-selecionada .corpo-marcador { transform: translateY(-4px) rotate(-45deg) scale(1.15); box-shadow: 0 4px 10px #102e5060, 0 0 0 4px #ffffffa6; }
+.popup-familia { transition: opacity .18s ease; }
+.popup-familia .leaflet-popup-content-wrapper { padding: 18px 18px 16px; border: 1px solid var(--borda); border-radius: 12px; box-shadow: 0 8px 28px #102e5030; animation: abrir-familia .2s ease-out; }
+.popup-familia .leaflet-popup-content { margin: 0; font-family: 'Montserrat', sans-serif; color: var(--texto); line-height: 1.6; }
+.identificacao-familia { min-width: 0; padding-right: 12px; }
+.tipo-representante { display: block; padding-right: 12px; margin-bottom: 6px; color: var(--secundario); font-size: 10px; }
+.nome-representante { display: block; font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+.classificacao-familia { display: flex; gap: 8px; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--borda); font-size: 11px; }
+.classificacao-familia .amostra { width: 22px; height: 22px; }
+.popup-familia .leaflet-popup-close-button { top: 0; right: 0; width: 44px; height: 44px; font-size: 24px; line-height: 44px; color: var(--secundario); border-radius: 0 12px 0 8px; }
+.popup-familia .leaflet-popup-close-button:hover { color: var(--texto); background: #eef5fc; }
+@keyframes abrir-familia { from { opacity: 0; transform: translateY(7px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .agrupamento > span { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 3px solid #fff; border-radius: 50%; background: var(--cor-risco); color: #fff; box-shadow: 0 0 0 4px #ffffff80, 0 2px 9px #102e5050; font-size: 13px; font-weight: 700; }
+.agrupamento > span { transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, border-color .18s ease; }
+/* No calor, o disco do grupo não cobre as áreas de concentração. O número segue clicável. */
+.mapa-base[data-camada-calor='ativo'] .agrupamento > span { background: transparent; border-color: transparent; box-shadow: none; color: #102e50; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 5px #fff; }
 .leaflet-container a { color: #0958b3; }
 .leaflet-container .leaflet-control-zoom { margin-top: 17px; margin-right: 17px; border: 1px solid #cbd8e5; box-shadow: 0 3px 12px #102e5015; }
 .leaflet-container .leaflet-control-zoom a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--texto); }

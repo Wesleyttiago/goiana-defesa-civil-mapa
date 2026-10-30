@@ -1,9 +1,15 @@
 /** Contrato usado pelo RF03 e RF04. Os dados pertencem à API da equipe. */
 export interface PontoRisco {
   id: string;
+  nomeRepresentante?: string;
   latitude: number;
   longitude: number;
   nivelRisco: NivelRisco;
+}
+
+/** Mantém compatibilidade com fontes que ainda não fornecem o representante. */
+export function nomeDaFamilia(ponto: PontoRisco): string {
+  return ponto.nomeRepresentante || `Família ${ponto.id}`;
 }
 
 export type NivelRisco = 'baixo' | 'medio' | 'alto' | 'nao_informado';
@@ -41,7 +47,10 @@ export function normalizarPontos(dados: unknown): { pontos: PontoRisco[]; descar
     const item = dado as Record<string, unknown>;
     if (!coordenadasValidas(item.latitude, item.longitude)) { descartados++; return; }
     const id = typeof item.id === 'string' || typeof item.id === 'number' ? String(item.id) : `ponto-${indice + 1}`;
-    pontos.push({ id, latitude: item.latitude as number, longitude: item.longitude as number,
+    const nome = typeof item.nomeRepresentante === 'string'
+      ? item.nomeRepresentante.replace(/\s+/g, ' ').trim().slice(0, 120) : '';
+    pontos.push({ id, ...(nome ? { nomeRepresentante: nome } : {}),
+      latitude: item.latitude as number, longitude: item.longitude as number,
       nivelRisco: normalizarNivel(item.nivelRisco) });
   });
   return { pontos, descartados };
