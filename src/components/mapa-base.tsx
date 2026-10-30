@@ -4,6 +4,7 @@ import { memo, useEffect, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
 import { CENTRO_GOIANA, ESTILOS_RISCO, maiorNivel, nomeDaFamilia, type NivelRisco, type PontoRisco } from '@/lib/pontos';
 import { useCamadaCalor, type EstadoCalor } from './use-camada-calor';
+import CamadasAmbientaisMapa, { type ConfiguracaoAmbiente } from './camadas-ambientais-mapa';
 
 export interface EstadoPlotagem {
   fase: 'carregando' | 'pronto' | 'erro';
@@ -19,15 +20,22 @@ interface Props {
   aoAtualizar: (estado: EstadoPlotagem) => void;
   calorAtivo: boolean;
   aoAtualizarCalor: (estado: EstadoCalor) => void;
+  aoSelecionarFamilia: (ponto: PontoRisco) => void;
+  foco: { ponto: PontoRisco; revisao: number } | null;
+  ambiente: ConfiguracaoAmbiente;
 }
 
 const permiteMovimento = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo, aoAtualizarCalor }: Props) {
+function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo, aoAtualizarCalor, aoSelecionarFamilia, foco, ambiente }: Props) {
   const elementoRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<Leaflet.Map | null>(null);
   const bibliotecaRef = useRef<typeof Leaflet | null>(null);
   const mosaicoRef = useRef<Leaflet.TileLayer | null>(null);
+  const gruposRef = useRef<Leaflet.MarkerClusterGroup | null>(null);
+  const marcadoresRef = useRef(new Map<string, Leaflet.Marker>());
+  const selecionarRef = useRef(aoSelecionarFamilia);
+  selecionarRef.current = aoSelecionarFamilia;
   const [pronto, setPronto] = useState(false);
   const [erroInicial, setErroInicial] = useState(false);
   const [erroRuas, setErroRuas] = useState(false);
@@ -116,6 +124,8 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
         return L.divIcon({ html: circulo, className: 'agrupamento', iconSize: [44, 44], iconAnchor: [22, 22] });
       },
     }).addTo(mapa);
+    gruposRef.current = grupos;
+    marcadoresRef.current.clear();
 
     const marcadores = pontos.map(ponto => {
       const estilo = ESTILOS_RISCO[ponto.nivelRisco];
@@ -157,6 +167,10 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
       amostra.setAttribute('aria-hidden', 'true');
       const texto = document.createElement('span'); texto.textContent = `Risco informado: ${estilo.rotulo.toLowerCase()}`;
       classificacao.append(amostra, texto); cartao.append(descricao, nomeElemento, classificacao);
+      const consultar = document.createElement('button'); consultar.type = 'button'; consultar.className = 'consultar-no-mapa';
+      consultar.textContent = 'Ver cadastro da família';
+      consultar.onclick = () => selecionarRef.current(ponto);
+      cartao.append(consultar);
       marcador.bindPopup(cartao, {
         className: 'popup-familia', minWidth: 195, maxWidth: 265,
         offset: [0, -30], autoPanPadding: [24, 24], closeButton: true,
@@ -179,12 +193,21 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
         marcador.getElement()?.classList.remove('familia-selecionada');
         marcador.getElement()?.setAttribute('aria-expanded', 'false');
       });
+      marcadoresRef.current.set(ponto.id, marcador);
       return marcador;
     });
     grupos.addLayers(marcadores);
     if (!pontos.length) aoAtualizar({ fase: 'pronto', processados: 0, total: 0, duracaoMs: 0 });
-    return () => { cancelado = true; grupos.remove(); };
+    return () => { cancelado = true; grupos.remove(); gruposRef.current = null; marcadoresRef.current.clear(); };
   }, [pontos, pronto, aoAtualizar]);
+
+  useEffect(() => {
+    if (!pronto || !foco || !mapaRef.current) return;
+    const marcador = marcadoresRef.current.get(foco.ponto.id);
+    const grupos = gruposRef.current;
+    if (marcador && grupos) grupos.zoomToShowLayer(marcador, () => { if (grupos === gruposRef.current && marcadoresRef.current.get(foco.ponto.id) === marcador) marcador.openPopup(); });
+    else mapaRef.current.setView([foco.ponto.latitude, foco.ponto.longitude], 17, { animate: permiteMovimento(), duration: .45 });
+  }, [foco, pronto]);
 
   useEffect(() => { if (pronto) mapaRef.current?.setView(CENTRO_GOIANA, 14, { animate: permiteMovimento(), duration: 0.45 }); }, [centralizarId, pronto]);
   useEffect(() => {
@@ -196,6 +219,7 @@ function MapaBase({ pontos, centralizarId, enquadrarId, aoAtualizar, calorAtivo,
 
   return <div className="mapa-base" data-camada-calor={calor.estado.fase} data-pontos-calor={calor.estado.quantidade}>
     <div className="superficie-mapa" ref={elementoRef} role="region" aria-label="Mapa interativo de Goiana com famílias cadastradas" />
+    {pronto && mapaRef.current && <CamadasAmbientaisMapa mapa={mapaRef.current} configuracao={ambiente}/>}
     {!pronto && !erroInicial && <div className="carregando-mapa" role="status"><span className="spinner"/>Carregando o mapa de Goiana…</div>}
     {(erroInicial || erroRuas) && <div className="erro-mapa" role="alert"><span>{erroInicial ? 'Não foi possível iniciar o mapa.' : 'Não foi possível carregar as ruas. Verifique a conexão com a internet.'}</span>
       <button type="button" onClick={() => { if (erroInicial) setTentativa(n => n + 1); else { setErroRuas(false); mosaicoRef.current?.redraw(); } }}>Tentar novamente</button></div>}

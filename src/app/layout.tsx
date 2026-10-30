@@ -10,7 +10,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "DRP | Defesa Civil de Goiana — Mapa de famílias",
   description:
-    "RF03 e RF04 — Famílias cadastradas em Goiana, identificação do representante e mapa de calor.",
+    "Gestão em campo da Defesa Civil de Goiana: cadastro de famílias, mapa social e contexto ambiental.",
   robots: { index: false, follow: false },
 };
 

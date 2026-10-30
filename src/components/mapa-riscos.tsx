@@ -7,6 +7,7 @@ import { contarNiveis, ESTILOS_RISCO, type NivelRisco, type PontoRisco } from '@
 import { ESCALA_CALOR } from '@/lib/calor';
 import type { EstadoPlotagem } from './mapa-base';
 import type { EstadoCalor } from './use-camada-calor';
+import type { ConfiguracaoAmbiente } from './camadas-ambientais-mapa';
 
 const MapaBase = dynamic(() => import('./mapa-base'), { ssr: false,
   loading: () => <div className="carregando-mapa" role="status"><span className="spinner"/>Carregando o mapa de Goiana…</div> });
@@ -17,10 +18,13 @@ export interface MapaRiscosProps {
   erro?: string;
   descartados?: number;
   aoRecarregar?: () => void;
+  aoSelecionarFamilia: (ponto: PontoRisco) => void;
+  foco: { ponto: PontoRisco; revisao: number } | null;
+  ambiente: ConfiguracaoAmbiente;
 }
 
 /** RF03/RF04: mapa, pontos categorizados, agrupamentos e camada de densidade. */
-function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecarregar }: MapaRiscosProps) {
+function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecarregar, aoSelecionarFamilia, foco, ambiente }: MapaRiscosProps) {
   const totais = useMemo(() => contarNiveis(pontos), [pontos]);
   const [centralizarId, setCentralizarId] = useState(0);
   const [enquadrarId, setEnquadrarId] = useState(0);
@@ -38,7 +42,7 @@ function MapaRiscos({ pontos, carregando = false, erro, descartados = 0, aoRecar
       <button type="button" disabled={plotagem.fase !== 'pronto'} onClick={() => setCentralizarId(n => n + 1)}><LocateFixed size={16}/><span>Ir para Goiana</span></button>
       <button type="button" disabled={ocupado || !pontos.length} onClick={() => setEnquadrarId(n => n + 1)}><Expand size={16}/><span>Ajustar às famílias</span></button>
     </div></div>
-    <div className="area-mapa"><MapaBase pontos={pontos} centralizarId={centralizarId} enquadrarId={enquadrarId} aoAtualizar={atualizarPlotagem} calorAtivo={calorAtivo} aoAtualizarCalor={atualizarCalor}/>
+    <div className="area-mapa"><MapaBase pontos={pontos} centralizarId={centralizarId} enquadrarId={enquadrarId} aoAtualizar={atualizarPlotagem} calorAtivo={calorAtivo} aoAtualizarCalor={atualizarCalor} aoSelecionarFamilia={aoSelecionarFamilia} foco={foco} ambiente={ambiente}/>
       {!carregando && !erro && plotagem.fase === 'pronto' && !pontos.length && <div className="aviso-vazio" role="status">Nenhum ponto disponível para exibir. O mapa continua pronto para receber dados.</div>}
       <div className="legenda">
         <div className="controle-calor"><Layers size={17}/><span>Mapa de calor</span><button type="button" role="switch" aria-label="Mapa de calor" aria-checked={calorAtivo} aria-describedby="estado-calor" disabled={!calorAtivo && (ocupado || !pontos.length || !!erro || plotagem.fase === 'erro')} onClick={() => setCalorAtivo(ativo => !ativo)}><span className="trilho-calor" aria-hidden="true"><span/></span></button></div>

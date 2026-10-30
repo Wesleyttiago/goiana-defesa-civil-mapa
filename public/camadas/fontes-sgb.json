@@ -1,0 +1,16 @@
+{
+  "fonte": "Serviço Geológico do Brasil",
+  "item": "https://rigeo.sgb.gov.br/handle/doc/25401",
+  "titulo": "Carta de suscetibilidade a movimentos gravitacionais de massa e inundação: município de Goiana - PE",
+  "autores": [
+    "Gilmar Dias Pauli",
+    "Rafaelly Rocha Cavalcanti de Lira",
+    "Guilherme Terra"
+  ],
+  "ano": 2025,
+  "escalaCarta": "1:45.000",
+  "escalaGeologia": "1:100.000",
+  "geopackageSha256": "7541aa333b5049a50bfa9786ef824f09ad178b84b1cdb31f2ba75c4215bd6e03",
+  "transformacao": "Subconjunto de Inundacao_A, Movimento_de_Massa_A e Litologia_100Mil_A. Simplificação de 10 m com preservação de topologia em EPSG:31985; reprojeção para EPSG:4326 e arredondamento a 6 casas quando a geometria permanece válida. Classes originais mantidas.",
+  "limiteDeUso": "Referência territorial. Não é previsão de cheias nem avaliação de risco de uma residência. A priorização de equipes depende de validação da Defesa Civil."
+}

@@ -69,7 +69,7 @@ export function maiorNivel(niveis: Iterable<NivelRisco>): NivelRisco {
 }
 
 export async function carregarPontos(endereco: string, signal?: AbortSignal) {
-  const resposta = await fetch(endereco, { signal, cache: 'no-store', headers: { Accept: 'application/json' } });
+  const resposta = await fetch(endereco, { signal, credentials: 'include', cache: 'no-store', headers: { Accept: 'application/json' } });
   if (!resposta.ok) throw new Error('Não foi possível carregar os pontos. Verifique a conexão e tente novamente.');
   let dados: unknown;
   try { dados = await resposta.json(); }
