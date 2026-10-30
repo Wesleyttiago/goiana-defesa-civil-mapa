@@ -99,6 +99,16 @@ A camada roxa **Setores históricos de risco · SGB 2014** preserva as três geo
 
 O script [extrair-territorio-goiana.py](../scripts/extrair-territorio-goiana.py), com `pyshp` somente na manutenção, extrai o polígono municipal do ZIP `PE_Municipios_2025.zip` e os setores de `sig_goiana_pe_risco.zip`. O hash e a URL da malha original acompanham o GeoJSON em `src/data/limite-goiana.json`. Os setores foram extraídos do arquivo `PE_GOI_SR_CPRM_atualizado`, em WGS84, preservando a geometria; apenas os atributos públicos úteis foram mantidos.
 
+## Mapa de calor e transições
+
+O calor usa uma camada própria de canvas sobre o Leaflet. O renderizador anterior (`leaflet.heat` 0.2.0 / simpleheat) desenhava o kernel com deslocamento de sombra fixo de 200 px; raios maiores deixavam o disco original visível, causando recortes e manchas opacas. Ele foi removido das dependências. A correção não altera plugins nem arquivos de `node_modules`.
+
+A nova camada soma um kernel radial suave por cadastro, com peso igual e influência de 250 metros na latitude de Goiana. Esse raio é uma escolha de visualização de concentração, **não uma área de inundação ou distância de segurança**. A projeção e o raio acompanham os zooms 3 a 19. A grade é ancorada nas coordenadas mundiais, inclui contribuições de pontos fora da borda e limita a amostragem a 32 passos por raio. A escala de cores é logarítmica e fixa (referência 60), sem recalibrar pelo máximo da janela ou do filtro. Um cadastro isolado continua azul. A transparência máxima de 64% preserva a leitura do mapa base.
+
+Uma instância e um canvas visível são reutilizados nas alternâncias. Há uma amostra auxiliar fora do DOM para interpolação das cores; não se cria um elemento por cadastro. Eventos de movimentação, zoom e redimensionamento são agrupados em `requestAnimationFrame`; remoção cancela o frame e os listeners. Uma margem de desenho acompanha pequenos deslocamentos durante o arraste; quando essa margem se aproxima da borda, o desenho é renovado em um único frame agendado. A transformação do Leaflet acompanha o zoom animado. Filtrar, cadastrar e recarregar atualiza os mesmos pontos do mapa e do calor.
+
+Cartões de familiares e camadas ambientais têm expansão/recolhimento com altura e opacidade animadas. O conteúdo fechado fica `inert` e fora da leitura assistiva; os botões mantêm `aria-expanded` e `aria-controls`. O painel de cadastro entra e sai em 260 ms, com dois frames para garantir a transição inicial. Há efeitos discretos de entrada nos indicadores, de troca das linhas e de interação em botões/campos. `prefers-reduced-motion` reduz ou elimina essas transições. Não há animação contínua do mapa nem biblioteca adicional de animação.
+
 ## Verificação
 
 Execute `npm test` e `npm run build`. Os testes cobrem validações, contrato de envio, falhas e idempotência, coordenadas, calor, normalização de medições e integridade da cartografia. A interface também deve ser conferida com teclado e em telas pequenas. A API real e o acesso a dados confidenciais precisam de testes de integração no ambiente protegido da equipe.
